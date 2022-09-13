@@ -1,0 +1,15 @@
+<odoo>
+    <data>
+        <record id="cash_box_out_form_inherit" model="ir.ui.view">
+            <field name="name">cash.box.out.inherit</field>
+            <field name="model">cash.box.out</field>
+            <field name="inherit_id" ref="account.cash_box_out_form"/>
+            <field name="arch" type="xml">
+                <field name='name' position="before">
+                    <field name="x_source" invisible="1" />
+                    <field name="x_transaction_type" style="width:21.5%;"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
