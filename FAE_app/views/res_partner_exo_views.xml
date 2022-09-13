@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+        <record id="xpartner_exoneration_view_form"  model="ir.ui.view">
+            <field name="name">view.partner.exo.form</field>
+            <field name="model">xpartner.exoneration</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                       <group>
+                           <group>
+                               <field name="partner_id" options="{'no_create': True, 'no_open': True}"/>
+                               <field name="exoneration_number"/>
+                               <field name="institution_name"/>
+                               <field name="type_exoneration"/>
+                               <field name="has_cabys" readonly="1"/>
+                           </group>
+                           <group>
+                               <field name="date_issue"/>
+                               <field name="date_expiration"/>
+                               <field name="exoneration_rate"/>
+                               <field name="account_tax_id"/>
+                               <field name="active" widget="boolean_toggle"/>
+                           </group>
+                       </group>
+                        <group>
+                            <field name="cabys_list"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <record id="action_fae_doc" model="ir.actions.report">
+        <field name="name">Reporte de Documentos</field>
+        <field name="model">xfae.incoming.documents</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">FAE_app.fae_doc_summary_report</field>
+        <field name="report_file">FAE_app.fae_doc_summary_report</field>
+        <field name="print_report_name">FAE_app.fae_doc_summary_report</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="internal_layout_inherit">
+        <t t-if="not o" t-set="o" t-value="doc"/>
+
+        <t t-if="not company">
+            <!-- Multicompany -->
+            <t t-if="company_id">
+                <t t-set="company" t-value="company_id"/>
+            </t>
+            <t t-elif="o and 'company_id' in o">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+            </t>
+            <t t-else="else">
+                <t t-set="company" t-value="res_company"/>
+            </t>
+        </t>
+
+        <div class="header">
+            <div class="row">
+                <div class="col-3">
+                    <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                </div>
+                <div class="col-2 offset-2 text-center">
+                </div>
+                <div class="col-2 offset-3 text-right">
+                    <ul class="list-inline">
+                        <li class="list-inline-item"><span class="page"/></li>
+                        <li class="list-inline-item">/</li>
+                        <li class="list-inline-item"><span class="topage"/></li>
+                    </ul>
+                </div>
+            </div>
+            <br/>
+            <div style="text-align: center;font-size:16px;">
+                <center><span t-esc="company.name"/></center>
+            </div>
+        </div>
+        <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+          <t t-raw="0"/>
+        </div>
+    </template>
+
+
+    <template id="fae_doc_summary_report">
+        <t t-call="web.html_container">
+            <t t-call="FAE_app.internal_layout_inherit">
+                <div class="page">
+                    <style type="text/css">
+                        .bdy {
+                            font-size:20px;
+                            padding-bottom:60px;
+                        }
+                        .tble {
+                            width: 100%;
+                            margin-bottom: 1rem;
+                            font-size:20px;
+                        }
+                        .rounded2{
+                            border: 1px solid;
+                            padding:5px 5px;
+                        }
+                        .tble-header {
+                            height: 30px;
+                            font-size: 20px;
+                            text-align: center;
+                            line-height: 30px;
+                            text-decoration: none;
+                            font-weight: bold;
+                            border-top: 1px solid #dee2e6;
+                            border-bottom: 1px solid #dee2e6;
+                            background:#f4f6f6;
+                        }
+                    </style>
+                    <h4><center>RESUMEN DE DOCUMENTOS ELECTRÓNICOS RECIBIDOS</center></h4>
+                    <br/>
+                    <strong><center>Reporte en el período desde el <span t-esc="from_day"/> - <span t-esc="from_month"/> - <span t-esc="from_year"/>
+                        hasta el <span t-esc="to_day"/> - <span t-esc="to_month"/> - <span t-esc="to_year"/></center></strong>
+                    <br/>
+                    <br/>
+                    <strong><center>RESUMEN DE DOCUMENTOS POR IMPUESTO</center></strong>
+                    <br/>
+                    <strong>PRODUCTOS BIENES</strong>
+                    <table class="tble" cellspacing="0">
+                        <thead class="tble-header">
+                            <tr style="font-size:16px">
+                                <th class="text-right" ><strong>Subtotal</strong></th>
+                                <th class="text-right" ><strong>%Imp</strong></th>
+                                <th class="text-right" ><strong>Monto Imp.</strong></th>
+                                <th class="text-right" ><strong>Total</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="total_tax_amount" t-value="0" />
+                            <t t-set="total_amount" t-value="0" />
+                            <t t-foreach="lines_not_services" t-as="line">
+                                <t t-set="total_tax_amount" t-value="total_tax_amount + line['tax_amount']"/>
+                                <t t-set="total_amount" t-value="total_amount + line['total']"/>
+                                <tr style="font-size:14px">
+                                    <td class="text-right" >
+                                        <span t-esc="line['subtotal']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="line['tax_percent']"/>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="line['tax_amount']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="line['total']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr style="font-size:14px">
+                                <td>
+                                </td>
+                                <td class="text-right" ><strong>TOTALES</strong>
+                                </td>
+                                <td class="text-right" >
+                                    <span t-esc="total_tax_amount" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                                <td class="text-right" >
+                                    <span t-esc="total_amount" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                    <br/>
+                    <strong>PRODUCTOS SERVICIOS</strong>
+                    <br/>
+                    <table class="tble" cellspacing="0">
+                            <thead class="tble-header">
+                                <tr style="font-size:16px">
+                                    <th class="text-right"><strong>Subtotal</strong></th>
+                                    <th class="text-right"><strong>%Imp</strong></th>
+                                    <th class="text-right"><strong>Monto Imp.</strong></th>
+                                    <th class="text-right"><strong>Total</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total_tax_amount" t-value="0" />
+                                <t t-set="total_amount" t-value="0" />
+                                <t t-foreach="lines_services" t-as="line">
+                                    <t t-set="total_tax_amount" t-value="total_tax_amount + line['tax_amount']"/>
+                                    <t t-set="total_amount" t-value="total_amount + line['total']"/>
+                                    <tr style="font-size:14px">
+                                        <td class="text-right" >
+                                            <span t-esc="line['subtotal']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                        <td class="text-right" >
+                                            <span t-esc="line['tax_percent']"/>
+                                        </td>
+                                        <td class="text-right" >
+                                            <span t-esc="line['tax_amount']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                        <td class="text-right" >
+                                            <span t-esc="line['total']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="font-size:14px">
+                                    <td>
+                                    </td>
+                                    <td class="text-center" ><strong>TOTALES</strong>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="total_tax_amount" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="total_amount" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    <br/>
+
+                    <strong><center>DETALLES DE DOCUMENTOS RECIBIDOS</center></strong>
+                    <br/>
+                    <table class="tble" cellspacing="0">
+                            <thead class="tble-header">
+                                <tr style="font-size:14px">
+                                    <th><strong>TID</strong></th>
+                                    <th><strong>Identificación</strong></th>
+                                    <th><strong>Proveedor</strong></th>
+                                    <th><strong>Secuencia</strong></th>
+                                    <th><strong>Fecha emisión</strong></th>
+                                    <th><strong>Aceptación</strong></th>
+                                    <th class="text-right"><strong>Subtotal</strong></th>
+                                    <th class="text-right"><strong>Impuesto</strong></th>
+                                    <th class="text-right"><strong>Total</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody class="mt16 mb30" style="border-bottom: 1px solid #dee2e6">
+                                <t t-set="total_amount" t-value="0"/>
+                                <t t-set="total_tax_amount" t-value="0"/>
+                                <t t-set="total_subtotal" t-value="0"/>
+                                <t t-foreach="doc_lines" t-as="line">
+                                    <t t-set="total_amount" t-value="total_amount + line['total']"/>
+                                    <t t-set="total_tax_amount" t-value="total_tax_amount + line['tax']"/>
+                                    <t t-set="total_subtotal" t-value="total_subtotal + line['subtotal']"/>
+
+                                    <tr style="font-size:14px">
+                                        <td class="text-center">
+                                            <span t-esc="line['tid']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['identification']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['supplier_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['sequence']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['issue_date']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['accept']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="line['subtotal']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="line['tax']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                        <td class="text-right" >
+                                            <span t-esc="line['total']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="font-size:14px">
+                                    <td />
+                                    <td />
+                                    <td />
+                                    <td />
+                                    <td />
+                                    <td class="text-center" ><strong>TOTALES</strong>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="total_subtotal" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="total_tax_amount" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="text-right" >
+                                        <span t-esc="total_amount" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</data>
+</odoo>
