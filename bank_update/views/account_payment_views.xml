@@ -1,0 +1,19 @@
+<odoo>
+    <data>
+        <record id="xview_account_payment_form_inherit_bank_update" model="ir.ui.view">
+            <field name="name">xview.account.payment.form.inherit.bank_update</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='journal_id']" position="after">
+                    <field name="x_destination_journal_id" options="{'no_create': True}"
+                           attrs="{'readonly': [('state', '!=', 'draft')],'required':[('is_internal_transfer','=',True)],'invisible':[('is_internal_transfer','=',False)]}"/>
+                </xpath>
+                <xpath expr="//field[@name='move_id']" position="after">
+                    <field name="x_transfer_move"
+                           attrs="{'readonly': ['|',('state', 'in', ('draft','posted','cancel')),('x_transfer_move','=',True)],'invisible':[('x_transfer_move','=',False)]}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
