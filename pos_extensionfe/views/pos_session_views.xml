@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Search and filter en el tree -->
+        <record id="pos_extfe_pos_session_filter" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.session.search.inherit</field>
+            <field name="model">pos.session</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_session_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search/field[@name='user_id']" position="after">
+                    <field name="x_employee_id"/>
+                </xpath>
+                <xpath expr="//search/filter[@name='open_sessions']" position="after">
+                    <filter string="Para Cerrar" name="no_cerrada_aun" domain="[('state','!=','closed')]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Lista de sessiones -->
+        <record id="pos_extfe_pos_session_view_tree" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.session.view.tree</field>
+            <field name="model">pos.session</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_session_tree"/>
+            <field name="arch" type="xml">
+                <field name="user_id" position="after">
+                    <field name="x_employee_id"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Pantalla de Session -->
+        <record id="pos_extfe_pos_session_view_form" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.session.view.form</field>
+            <field name="model">pos.session</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet//group[1]" position="replace">
+                    <group>
+                        <group>
+                            <field name="cash_control" invisible="1" />
+                            <field name="user_id"/>
+                            <field name="x_employee_id" attrs="{'invisible':[('x_employee_id','=',False)]}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="config_id"/>
+                        </group>
+                        <group>
+                            <field name="start_at" attrs="{'invisible' : [('state', '=', 'opening_control')]}"/>
+                            <field name="stop_at" attrs="{'invisible' : [('state', '!=', 'closed')]}"/>
+                            <field name="move_id" readonly="1" groups="account.group_account_readonly" />
+                        </group>
+                    </group>
+                </xpath>
+                <xpath expr="//button[@name='open_frontend_cb']" position="replace" />
+                <!-- <xpath expr="/form/sheet/notebook/page/group/group/div/group[1]" position="attributes"> -->
+                <!-- Cuando la sessión NO esta closed se muestra el campo cash_register_total_entry_encoding -->
+                <field name="cash_register_total_entry_encoding" position="before">
+                    <field name="cash_register_balance_start" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                    <field name="x_cash_register_total_cash_payments" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                    <field name="x_cash_register_cashier_moves"  widget="monetary" options="{'currency_field': 'currency_id'}" />
+                </field>
+                <!-- Cuando la sessión esta closed se muestra el campo cash_real_transaction  -->
+                <field name="cash_real_transaction" position="before">
+                    <field name="cash_register_balance_start" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                    <field name="x_cash_register_total_cash_payments" widget="monetary" options="{'currency_field': 'currency_id'}" />
+                    <field name="x_cash_register_cashier_moves"  widget="monetary" options="{'currency_field': 'currency_id'}" />
+                </field>                
+                <field name="cash_register_total_entry_encoding" position="replace"/>
+                <field name="cash_real_transaction" position="replace"/>
+
+                <xpath expr="//notebook//page[@name='cash_control']/div[last()]" position="after">
+                    <br/>
+                    <div>
+                        <label for="x_notes"/>
+                        <field name="x_notes" attrs="{'readonly' : [('state', '=', 'closed')]}"/>
+                    </div>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

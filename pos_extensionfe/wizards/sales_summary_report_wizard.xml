@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="sales_summary_report_form" model="ir.ui.view">
+            <field name="name">Resumen de Ventas</field>
+            <field name="model">sales.report.wizard</field>
+            <field name="arch" type="xml">
+            <form string="Resumen de Ventas">
+                <group string="Seleccione el período para generar el reporte" col="4">
+                    <field name="date_from" widget="date" string="Fecha Inicio"/>
+                    <field name="date_to" widget="date" string="Fecha Fin"/>
+                </group>
+                <footer>
+                    <button name="print_report" string="Imprimir" type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-default" special="cancel" />
+                </footer>
+            </form>
+            </field>
+        </record>
+
+        <record id="action_xpos_sales_summary_report" model="ir.actions.act_window">
+            <field name="name">Resumen de Ventas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sales.report.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

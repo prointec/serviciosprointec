@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="xpos_receipt_wizard_form" model="ir.ui.view">
+            <field name="name">Abonar Factura</field>
+            <field name="model">xpos.receipt</field>
+            <field name="arch" type="xml">
+            <form string="Abono a Crédito">
+                <group string="Inserte Nombre Factura" col="2">
+                    <field name="partner_id" string="Cliente" required="1"/>
+                </group>
+
+                <notebook>
+                    <page string="Órdenes">
+                        <field name="moves_list">
+                            <tree class="tree_no_open" editable="bottom" create="false" delete="false">
+                                <field name="move" width="30%" options="{'no_create_edit':True, 'no_open': False}"/>
+                                <field name="date" width="10%"/>
+                                <field name="amount_total_order" width="15%"/>
+                                <field name="to_receipt" width="15%"/>
+                                <field name="last_balance" invisible="1" width="15%"/>
+                                <field name="monto_receipt" attrs="{'invisible':[('to_receipt','=',False)]}" width="15%"/>
+                           </tree>
+                        </field>
+                    </page>
+                </notebook>
+
+
+                <footer>
+                    <button name="insert_receipt" string="Pasar a Caja" type="object" class="oe_highlight"/>
+                    <button string="Cancelar" class="oe_link" special="cancel" />
+                </footer>
+            </form>
+            </field>
+        </record>
+
+        <record id="action_pos_receipt_wizard" model="ir.actions.act_window">
+            <field name="name">Abono a Crédito</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">xpos.receipt</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

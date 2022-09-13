@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="xpos_exchange_rate_tree_view" model="ir.ui.view">
+        <field name="name">xpos.exchange.rate.tree</field>
+        <field name="model">res.currency</field>
+        <field name="arch" type="xml">
+            <tree string="Tipos de cambio para Punto de Venta" editable="bottom" create="0" delete="0" >
+                <field name="x_currency_editable" invisible="1"/>
+                <field name="name" readonly="1"/>
+                <field name="symbol" readonly="1"/>
+                <field name="x_exchange_type" attrs="{'readonly':[('x_currency_editable','=',False)]}"/>
+                <field name="x_round_factor"
+                       groups="point_of_sale.group_pos_manager"
+                       attrs="{'readonly':[('x_exchange_type','=','manual')],}"
+                />
+                <field name="x_exchange_amount"
+                       groups="point_of_sale.group_pos_manager"
+                       attrs="{'required':[('x_currency_editable','=',True),('x_exchange_type','!=',False)],'readonly':[('x_currency_editable','=',False)]}"
+                />
+                <field name="x_exchange_rate" attrs="{'readonly':[('x_currency_editable','=',False)]}"/>
+                <field name="x_end_date" attrs="{'required':[('x_currency_editable','=',True),('x_exchange_type','!=',False)],'readonly':[('x_currency_editable','=',False)]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Actions-->
+    <record id="action_xpos_exchange_rate" model="ir.actions.act_window">
+        <field name="name">Tipo de Cambio de PoS</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.currency</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('name','!=','CRC')]</field>
+        <field name="view_ids"
+               eval="[(5,0,0),
+                      (0, 0, {'sequence': 2, 'view_mode': 'tree', 'view_id': ref('pos_extensionfe.xpos_exchange_rate_tree_view')}),
+                     ]"
+            />
+    </record>
+
+</odoo>

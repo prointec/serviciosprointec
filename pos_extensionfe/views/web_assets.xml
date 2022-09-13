@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- View -->
+    <template id="assets_backend" inherit_id="web.assets_backend" name="Print Reports">
+        <xpath expr="//script[last()]" position="after">
+            <script type="text/javascript" src="/pos_extensionfe/static/src/js/qwebactionmanager.js"/>
+            <script type="text/javascript" src="/pos_extensionfe/static/src/js/printReports.js"/>
+        </xpath>
+    </template>
+</odoo>

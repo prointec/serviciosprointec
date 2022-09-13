@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Pos.order Accion Recrear Documento -->
+<!--         <record id="action_view_recrea_document" model="ir.actions.server">
+            <field name="name">Recrear documento</field>
+            <field name="model_id" ref="point_of_sale.model_pos_order"/>
+            <field name="binding_model_id" ref="point_of_sale.model_pos_order" />
+            <field name="binding_view_types">form</field>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    action = records.action_recrea_documento()
+            </field>
+        </record> -->
+
+        <!-- Pos.order changes -->
+        <record id="pos_extfe_pos_order_filter" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.order.search.inherit</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_order_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='session_id']" position="after">
+                    <field name="x_sequence"/>
+                    <field name="x_name_to_print"/>
+                </xpath>
+                <xpath expr="//search/filter[@name='invoiced']" position="before">
+                    <filter string="Para Cobro" name="state_draft" domain="[('state','=','draft')]"/>
+                    <filter string="Pagadas" name="state_paid" domain="[('state','=','paid')]"/>
+                </xpath>
+                <xpath expr="//group/filter[@name='status']" position="after">
+                    <filter name="x_state_dgt" string="Estado DGT" domain="[]" context="{'group_by': 'x_state_dgt'}"/>
+                    <filter name="x_move_type" string="Tipo documento" domain="[]" context="{'group_by': 'x_move_type'}"/>
+
+                </xpath>
+            </field>
+        </record>
+
+        <record id="pos_extfe_pos_order_tree_view" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.order.tree.view</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+            <field name="arch" type="xml">
+                <tree position="attributes">
+                    <attribute name="decoration-bf"> state=='draft' and x_is_express == True </attribute>
+                    <attribute name="decoration-danger">x_state_dgt in ('2','FI','ERR')</attribute>
+                </tree>
+                <field name="pos_reference" position="before">
+                    <field name="x_move_type" readonly="1"/>
+                </field>
+                <field name="partner_id" position="replace">
+                    <field name="x_name_to_print" />
+                    <field name="partner_id" optional="hide" />
+                    <field name="x_document_type" />
+                    <field name="x_sequence" />
+                    <field name="x_state_dgt" />
+                    <!-- <field name="employee_id" string="Vendedor" /> -->
+                </field>
+                <field name="state" position="after">
+                    <field name="x_is_express" optional="show" />
+                    <field name="x_amount_return_total" optional="hide" />
+                    <field name="x_rejection_processed" optional="hide" />
+                </field>
+
+            </field>
+        </record>
+
+        <record id="pos_extfe_pos_order_form_view" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.order.draft.form.view</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside" >
+                    <field name="state" invisible="1" />
+                    <field name="x_cashier_session_id" invisible="1" />
+                </xpath>
+
+                <xpath expr="//button[@name='action_pos_order_invoice']" position="attributes" >
+                    <attribute name="string">APLICAR A CREDITO'</attribute>
+                    <attribute name="attrs">{'invisible': ['|','|',('x_cashier_session_id','=',0), ('invoice_group', '=', False), ('state','!=','draft')]}</attribute>
+                </xpath>
+
+                <xpath expr="//button[@name='%(point_of_sale.action_pos_payment)d']" position="replace">
+                    <button name="action_get_payment" string="Payment" type="object" class="oe_highlight"
+                                  attrs="{'invisible':['|','|',('x_cashier_session_id','=',0), ('state','!=','draft'),('amount_total','&lt;',0)]}" />
+                </xpath>
+
+                <xpath expr="//form/header/button[@name='refund']" position="after">
+                    <field name="x_show_generate_xml_button" invisible="1"/>
+                    <field name="x_rejection_processed" invisible="1"/>
+                    <button name="%(action_pos_set_express)d" string="Send to Express" type="action"
+                                  attrs="{'invisible':['|','|',('x_cashier_session_id','=',0), ('state','!=','draft'),('amount_total','&lt;',0)]}"/>
+                    <button name="action_print_ticket_pos_order" string="Print" type="object" colspan="2"/>
+                    <button name="generate_xml_and_send_dgt_manual" string="Crear XML" type="object" colspan="2"
+                                    attrs="{'invisible':['|',('x_state_dgt','=','ENV'), ('x_show_generate_xml_button','=',False)]}"/>
+                    <button name="generate_xml_and_send_dgt_manual" string="Reenviar Hacienda" type="object" colspan="2"
+                                    attrs="{'invisible':[('x_state_dgt','!=','ENV')]}"/>
+                    <button name="consulta_status_doc_enviado_dgt" type="object" string="Consultar Hacienda" colspan="2"
+                                    attrs="{'invisible':['|',('x_state_dgt','=', False),('x_state_dgt','not in',['PRO','FI'])]}"/>
+                    <button name="action_send_mail_fae" type="object" string="Reenviar Correo" colspan="2"
+                                    attrs="{'invisible':[('x_state_dgt','!=','1')]}"/>
+                    <button name="action_recrea_documento" type="object" style="color: #a9cce3  ; " string="Recrear Documento"
+                                     attrs="{'invisible':['|',('state','=','draft'), ('x_rejection_processed','=',True)]}"/>
+                </xpath>
+
+                <!-- Oculta los campos para recolocar algunos detro de un group  -->
+                <field name="name" position="replace"/>
+                <field name="date_order" position="replace"/>
+                <field name="session_id" position="replace"/>
+                <field name="partner_id" position="replace"/>
+                <field name="fiscal_position_id" position="replace"/>
+
+                <!-- Reposiciona los campos y coloca los nuevos campos -->
+                <xpath expr="//group[@name='order_fields']" position="replace">
+                    <group name="order_fields">
+                        <group>
+                            <field name="invoice_group" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="x_move_type" invisible="1"/>
+                            <field name="name"/>
+                            <field name="session_id" readonly="1" force_save="1"/>
+                            <field name="partner_id" context="{'res_partner_search_mode': 'customer'}" attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="x_name_to_print" attrs="{'invisible':[('x_name_to_print','=',False)]}"/>
+                            <field name="x_document_type" attrs="{'readonly':[('state','!=', 'draft')]}"/>
+                            <field name="x_sequence" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="date_order"/>
+                            <field name="employee_id" string="Vendedor" attrs="{'readonly': [('state','!=','draft')], 'required': [('x_move_type','=','invoice')] }"/>
+                            <field name="fiscal_position_id" readonly="1" force_save="1"/>
+                            <field name="to_invoice" string="Factura Crédito" attrs="{'readonly': 1, 'invisible':[('to_invoice','!=',True)]}"/>
+                            <label for="x_is_express" attrs="{'invisible':[('x_is_express','=',False)]}"/>
+                            <div class="o_row" attrs="{'invisible':[('x_is_express','=',False)]}">
+                                <field name="x_is_express" nolabel="1" class="oe_inline" readonly="1"/>
+                                <label for="x_amount_pays_with" string="Paga Express con" style="padding-left:30px"/>
+                                <field name="x_amount_pays_with" readonly="1" style="margin-left:10px"/>
+                                <!-- attrs="{'invisible':[('x_is_express','=',False)]}" /> -->
+                            </div>
+                            <field name="x_amount_return_total" readonly="1" attrs="{'invisible':[('x_amount_return_total','=',0)]}"/>
+
+                            <label for="x_state_dgt" />
+                            <div class="o_row">
+                                <field name="x_state_dgt" class="oe_inline" readonly="1"/>
+                                <label for="x_rejection_processed" string="Reprocesado" style="font-weight:bold; margin-left:10px"
+                                       attrs="{'invisible': [('x_state_dgt','!=','2'), ('x_rejection_processed','=',False)]}"/>
+                                <field name="x_rejection_processed" style="margin-left:10px"
+                                       attrs="{'readonly':1, 'invisible': [('x_state_dgt','!=','2'), ('x_rejection_processed','=',False)]}"/>
+                            </div>
+                            <field name="pricelist_id" position="replace" groups="product.group_product_pricelist"/>
+                            <field name="x_reference_code_id" options="{'no_open': True}"
+                                   attrs="{'invisible':[('x_move_type', '!=', 'refund')], 'readonly':[('state','!=','draft')]}"/>
+                            <field name="x_error_count" invisible="1"/>
+                            <field name="x_sale_order_id" attrs="{'invisible':[('x_sale_order_id','=',False)]}" readonly="1" />
+                        </group>
+                    </group>
+                </xpath>
+
+                <!-- Cambios en las lineas -->
+                <xpath expr="//notebook/page[@name='extra']/group/group/field[@name='pricelist_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='full_product_name']" position="before">
+                    <field name="product_id" options="{'no_create':True}"/>
+                    <field name="x_tax_ids_for_calc_amount" invisible="1" force_save="1"/>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='full_product_name']" position="replace">
+                    <field name="x_parent_state" invisible="1"/>
+                    <field name="full_product_name" attrs="{'readonly':[('x_parent_state','!=','draft')]}" optional="hide"/>
+                </xpath>
+
+               <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='tax_ids']" position="replace" />
+
+                <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='tax_ids_after_fiscal_position']" position="attributes">
+                    <attribute name="string">Imp.Cond.Fiscal</attribute>
+                    <attribute name="optional">hide</attribute>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='tax_ids_after_fiscal_position']" position="before">
+                    <field name="x_discount_note" attrs="{'readonly':['|',('discount','=',False),('x_parent_state','!=','draft')]}" />
+                    <field name="tax_ids" string="Impuesto" widget="many2many_tags" optional="show" />
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='pack_lot_ids']" position="attributes">
+                    <attribute name="optional">hide</attribute>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='products']/field/tree/field[@name='price_subtotal_incl']" position="after">
+                    <field name="x_product_code" invisible="1" readonly="1"/>
+                    <field name="x_other_charge_partner_id"
+                           attrs="{'readonly':['|',('x_parent_state','!=','draft'),('x_product_code', '!=', '04')]}"
+                           optional="hide"/>
+                    <field name="pack_lot_ids" widget="many2many_tags" groups="stock.group_production_lot"
+                           optional="hide"/>
+                </xpath>
+
+                <field name="amount_tax" position="before" >
+                    <field name="x_amount_untaxed" widget="monetary" />
+                </field>
+
+                <!-- Pagos -->
+                <xpath expr="//notebook/page[@name='payments']/field/tree/field[@name='payment_method_id']" position="after">
+                    <field name="x_currency_id" />
+                    <field name="x_currency_amount" widget="monetary" options="{'currency_field': 'x_currency_id'}"/>
+                    <field name="x_exchange_rate"  digits="[8,2]" />
+                </xpath>
+
+                <!--                <xpath expr="//notebook/page[@name='payments']/field/tree" position="attributes">-->
+<!--                    <attribute name="delete">0</attribute>-->
+<!--                </xpath>-->
+<!--                <xpath expr="//notebook/page[@name='payments']/field/tree" position="inside">-->
+<!--                    <button name="unlink" icon="fa-trash" type="object" string="Delete" -->
+<!--                                           attrs="{'invisible': [('state', '!=', 'draft')]}"/>-->
+<!--                </xpath>-->
+
+                <!-- notes -->
+                <xpath expr="//notebook/page[@name='notes']" position="after">
+                    <page name="fae_info" string="FAE Information" attrs="{'invisible':[('x_move_type','=','receipt')]}">
+                        <group col="4">
+                            <group>
+                                <field name="x_issue_date" readonly="True"/>
+                                <field name="x_electronic_code50" readonly="True"/>
+                                <field name="x_xml_comprobante_fname" invisible="1" readonly="1"/>
+                                <field name="x_xml_comprobante" filename="x_xml_comprobante_fname" readonly="1"/>
+                                <field name="x_xml_respuesta_fname" invisible="1" readonly="1"/>
+                                <field name="x_xml_respuesta" filename="x_xml_respuesta_fname" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="x_reference_document_type_id" attrs="{'readonly':True, 'no_open':True}"/>
+                                <field name="x_invoice_reference_id" readonly="1"/>
+                                <field name="x_reference_sequence" string="Num.Referencia" readonly="1"/>
+                                <field name="x_response_date" readonly="1"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="x_mensaje_respuesta" readonly="1"/>
+                        </group>
+                    </page>
+                </xpath>
+
+                <!-- Chatter -->
+                <xpath expr="//form/*" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="pos_extfe_pos_order_action_inherit" model="ir.actions.act_window">
+            <field name="name">Pedidos</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">pos.order</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[('state', '=', 'draft')]</field>
+        </record>
+
+    </data>
+</odoo>

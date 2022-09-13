@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="ActionpadWidget" t-inherit="point_of_sale.ActionpadWidget" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('pay-circle')]" position="replace">
+             <t t-if="!env.pos.config.x_deny_payments">
+                <div class="pay-circle">
+                    <i class="fa fa-chevron-right" role="img" aria-label="Pay" title="Pay" />
+                </div>
+                 Pagos
+             </t>
+        </xpath>
+    </t>
+</templates>
+

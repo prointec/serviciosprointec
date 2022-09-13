@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates id="template" xml:space="preserve">
+
+    <t t-name="CreatePOSDraftButton" owl="1">
+        <div class="control-button">
+            <i class="fa fa-file" /> <span>Enviar a Caja</span> 
+        </div>
+    </t>
+
+    <t t-name="CreatePOSNameToPrintButton" owl="1">
+        <div class="control-button">
+            <i class="fa fa-user" /> <span>Nombre y notas</span>
+        </div>
+    </t>
+
+    <t t-name="ClientDetailsEdit" t-inherit="point_of_sale.ClientDetailsEdit" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('client-details-right')]//div[1]" position="before">
+            <div class="client-detail">
+                <span class="label">Tipo Identificación</span>
+                <select class="detail client-identification_type needsclick" name="x_identification_type_id"
+                        t-on-change="captureChange">
+                    <option value="">None</option>
+                    <t t-foreach="env.pos.identification_types" t-as="identification_type" t-key="identification_type.id">
+                        <option t-att-value="identification_type.id"
+                                t-att-selected="props.partner.x_identification_type_id ? ((identification_type.id === props.partner.x_identification_type_id[0]) ? true : undefined) : undefined">
+                            <t t-esc="identification_type.name" />
+                        </option>
+                    </t>
+                </select>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('client-details-left')]//div[4]" position="replace">
+
+        </xpath>
+        <xpath expr="//div[hasclass('client-details-left')]//div[5]" position="before">
+            <div class="client-detail">
+                <span class="label">Provincia</span>
+                <select class="detail client-address-states needsclick" name="state_id"
+                        t-on-change="captureChange">
+                    <option value="">None</option>
+                    <t t-foreach="env.pos.states" t-as="state" t-key="state.id">
+                        <option t-att-value="state.id"
+                                t-att-selected="props.partner.state_id ? ((state.id === props.partner.state_id[0]) ? true : undefined) : undefined">
+                            <t t-esc="state.name" />
+                        </option>
+                    </t>
+                </select>
+            </div>
+            <div class="client-detail">
+                <span class="label">Cantón</span>
+                <select class="detail client-address-counties needsclick" name="x_country_county_id"
+                        t-on-change="captureChange">
+                    <option value="">None</option>
+                    <t t-foreach="env.pos.counties" t-as="county" t-key="county.id">
+                        <t t-if="props.partner.state_id">
+                            <option t-att-value="county.id"
+                                    t-att-selected="props.partner.x_country_county_id ? ((county.id === props.partner.x_country_county_id[0]) ? true : undefined) : undefined">
+                                <t t-esc="county.name" />
+                            </option>
+                        </t>
+                        <t t-else="">
+                            <option t-att-value="county.id"
+                                    t-att-selected="props.partner.x_country_county_id ? ((county.id === props.partner.x_country_county_id[0]) ? true : undefined) : undefined">
+                                <t t-esc="county.name" />
+                            </option>
+                        </t>
+                    </t>
+                </select>
+            </div>
+            <div class="client-detail">
+                <span class="label">Distrito</span>
+                <select class="detail client-address-districts needsclick" name="x_country_district_id"
+                        t-on-change="captureChange">
+                    <option value="">None</option>
+                    <t t-foreach="env.pos.districts" t-as="district" t-key="district.id">
+                        <t t-if="props.partner.x_country_county_id">
+                            <option t-att-value="district.id"
+                                    t-att-selected="props.partner.x_country_district_id ? ((district.id === props.partner.x_country_district_id[0]) ? true : undefined) : undefined">
+                                <t t-esc="district.name" />
+                            </option>
+                        </t>
+                        <t t-else="">
+                            <option t-att-value="district.id"
+                                    t-att-selected="props.partner.x_country_district_id ? ((district.id === props.partner.x_country_district_id[0]) ? true : undefined) : undefined">
+                                <t t-esc="district.name" />
+                            </option>
+                        </t>
+                    </t>
+                </select>
+            </div>
+        </xpath>
+    </t>
+
+    <!--NotesWidget-->
+
+    <t t-name="NotesWidget" owl="1">
+        <div class="modal-dialog" role="dialog;">
+            <style type="text/css">
+                .xselect {
+                    min-width: 160px;
+                    border: solid 1px #cecbcb;
+                    box-sizing: border-box;
+                    padding-left: 4px;
+                    border-radius: 3px;
+                    margin-bottom: 4px;
+                    background: white;
+                    color: #555555;
+                    font-family: "Lato","Lucida Grande", Helvetica, Verdana, Arial;
+                    font-size: 18px;
+                }                
+                .xopts {
+                    border: 2px solid #cecbcb; 
+                    padding: 2px;
+                    border-radius: 2px;
+                    margin-bottom: 4px;
+                    background: white;
+                    color: #555555;
+                    font-family: "Lato","Lucida Grande", Helvetica, Verdana, Arial;
+                    font-size: 18px;
+                }
+            </style>
+
+            <div class="popup popup-lg" style="width: 40%; min-height: 345px;">
+                <div class="modal-header" style="height: 40px !important; background-color: #875A7B; color:#FFF; padding: 10px; text-align: Left;">
+                    <p class="modal-title" id="titulo">Datos de Factura</p>
+                </div>
+                <!-- <div class="body" style="height: 190px !important;"> -->
+                <div class="modal-body">
+                    <div id="div_tipo_documento" class="form-group" style="text-align: left; margin-left: 15px; margin-top: 5%;">
+                        <!-- background-color: #875A7B; 
+                            font-family: inherit;
+                            cursor: inherit;
+                            color: #FFF;
+                            appearance:none;
+                            border:none;                            
+                        --> 
+                        <!-- <label style="font-family: Lato; font-size: 20px; text-align: left; padding-right: 16px; ">Tipo documento: </label> -->
+                        <label style="padding-right: 16px; ">Tipo documento: </label>
+                        <select name="x_document_type_id" class="xselect" style="width: 30%; padding: 18px;" >
+                            <option class="xopts" value="-">-</option>
+                            <t t-if="props.document_type == 'FE'">
+                                <option value="TE" class="xopts" >Tiquete Electrónico</option>
+                                <option selected="selected" value="FE" class="xopts" >Factura Electrónica</option>
+                            </t>
+                            <t t-elif="props.document_type == 'TE'">
+                                <option value="FE" class="xopts">Factura Electrónica</option>
+                                <option selected="selected" value="TE" class="xopts">Tiquete Electrónico</option>
+                            </t>
+                            <t t-else="">
+                                <option value="FE" class="xopts">Factura Electrónica</option>
+                                <option value="TE" class="xopts">Tiquete Electrónico</option>
+                            </t>
+                        </select>
+                    </div>
+                    <div id="div_nombre" class="form-group" style="text-align: left; margin-left: 15px; margin-top: 2%;">
+                        <label style="text-align:left; padding-right: 10px; ">Nombre Cliente: </label>
+                        <input id ="name" type="text" class="input-field" 
+                                t-att-value="props.name || ''" name="code" style="height: 35px;width: 74%;float: right; margin-right: 3%;" />
+                    </div>
+                    <div id="div_notas" class="form-group" style="text-align: left; margin-left: 15px;margin-top: 2%;">
+                        <label style="text-align:left; ">Notas: </label>
+                        <br/>
+                        <input id ="notes" type="text" class="input-field" 
+                                t-att-value="props.note || ''" name="code" style="width: 97%; height: 35px; float: right; margin-right: 3%;" /> 
+                        <!-- <textarea id="notes" type="text" class="input-field" rows="3" 
+                                    t-att-value="props.note || ''" name="code" style="width: 92%; max-width:92%; float: right; margin-right: 4%;" />   -->
+                    </div>
+                    <br/>
+                </div>
+                <div class="modal-footer" style="padding-bottom: 2px">
+                    <div class="button cancel" t-on-click="cancel">
+                        Cancelar
+                    </div>
+                    <div class="button confirm" t-on-click="click_confirm" style="background-color: #0075AC; color: #fff;">
+                        Aplicar
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

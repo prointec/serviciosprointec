@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="xpos_payment_inherit_view_tree" model="ir.ui.view">
+            <field name="name">xpos_payment.inherit.tree</field>
+            <field name="model">pos.payment</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_payment_tree"/>
+            <field name="arch" type="xml">
+                <field name="payment_date" position="after">
+                    <field name="x_sequence" />
+                </field>
+                <field name="pos_order_id" position="after">
+                    <field name="x_currency_id" />
+                    <field name="x_currency_amount" string="Monto pago" widget="monetary" options="{'currency_field': 'x_currency_id'}"/>
+                    <field name="x_exchange_rate"  digits="[8,2]" />
+                </field>
+            </field>
+        </record>
+</odoo>

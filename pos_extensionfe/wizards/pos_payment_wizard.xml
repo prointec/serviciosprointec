@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="xpos_make_payment_inherit_form" model="ir.ui.view">
+            <field name="name">xpos.make.payment.form.inherit</field>
+            <field name="model">pos.make.payment</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_payment"/>
+            <field name="arch" type="xml">
+<!--                 <xpath expr="//field[@name='payment_method_id']" position="attributes">
+                    <attribute name="options">{'no_open':True}</attribute>
+                </xpath> -->                
+                <xpath expr="//field[@name='payment_method_id']" position="replace" />
+                <xpath expr='//group[1]' position="before">
+                    <group style="margin:0;padding:0;">
+                        <group style="margin:0;padding:0;" >
+                            <field name="x_currency_amount" attrs="{'invisible': [('amount', '&lt;', 0)]}"
+                                   widget='monetary' options="{'currency_field': 'x_currency_id'}"
+                            />
+                        </group>
+                        <group style="margin:0;padding:0;">
+                            <field name="x_currency_id"  attrs="{'invisible': [('amount', '&lt;', 0)]}" options="{'no_open': True, 'no_create': True}" />
+
+                            <field name="x_exchange_rate" attrs="{'invisible': [('amount', '&lt;', 0)]}"
+                                   digits="[8,2]" readonly="1" force_save="1" />
+                        </group>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='amount']" position="replace">
+                    <field name="x_payment_return" string="VUELTO"  attrs="{'invisible': [('amount', '>=', 0)]}"/>
+                    <field name="amount" readonly="1" force_save="1" attrs="{'invisible': [('amount', '&lt;', 0)]}"
+                            widget='monetary' options="{'currency_field': 'x_pos_currency_id'}"
+                    />
+                    <field name="payment_method_id" options="{'no_open':True}"
+                            domain="[('config_ids', 'in', config_id)]" />
+                </xpath>
+                <xpath expr="//button[@name='check']" position="replace">
+                    <button name="check" string="Aplicar" type="object" class="btn-primary" attrs="{'invisible': [('amount','>=', 0)]}"/>
+                    <button name="check" string="Aplicar pago" type="object" class="btn-primary" attrs="{'invisible': [('amount', '&lt;', 0)]}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_extfe_sale_order_form_view" model="ir.ui.view">
+        <field name="name">pos_extfe.sale.order.form.view</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_confirm']" position="before">
+                <button name="send_to_pos" string="Pasar a caja" type="object" attrs="{'invisible': [('x_sent_to_pos','=',True)]}" />
+            </xpath>
+            <xpath expr="//header/button[@name='%(sale.action_view_sale_advance_payment_inv)d'][1]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|',('invoice_status', '!=', 'to invoice'),('x_sent_to_pos','=',True)]}</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='%(sale.action_view_sale_advance_payment_inv)d'][2]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|','|',('invoice_status', '!=', 'no'), ('state', '!=', 'sale'), ('x_sent_to_pos','=',True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_shipping_id']" position="after">
+                <field name="x_employee_id" attrs="{'required':True, 'readonly':[('state','!=','draft')] }" />
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="x_sent_to_pos" invisible="1" />
+                <field name="x_document_type" attrs="{'readonly':[('x_sent_to_pos','=',True)] }" />
+                <field name="x_pos_config_id" attrs="{'readonly':[('x_sent_to_pos','=',True)] }" options="{'no_create':True, 'no_open':True}" />
+                <field name="x_pos_order_id" attrs="{'invisible':[('x_pos_order_id','=',False)]}" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

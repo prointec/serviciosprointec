@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Kanban de inicio de Session -->
+        <record id="pos_extfe_pos_config_kanban_view" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.config.kanban.view</field>
+            <field name="model">pos.config</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_config_kanban"/>
+            <field name="arch" type="xml">
+<!--                 <xpath expr="//t[contains(@t-if,'and record.pos_session_duration.raw_value > 1')]" position="replace">
+                    <div t-attf-class="badge badge-#{record.pos_session_duration.raw_value > 30 and 'danger' or 'warning'} o_kanban_inline_block"
+                         title="The session has been opened for an unusually long period. Please consider closing.">
+                         To Close
+                    </div>
+                </xpath> -->
+
+                <!-- Deshabilita los botones: Open Session y Close -->
+                <xpath expr="//button[@name='open_existing_session_cb']" position="replace" />
+                <xpath expr="//button[@name='open_existing_session_cb']" position="replace" />
+                <!-- Deshabilita el boton: Resume y New Session para redefinirlo -->
+                <xpath expr="//button[@name='open_ui']" position="replace" />
+                <xpath expr="//button[@name='open_session_cb']" position="replace" />
+
+
+                <!-- <div class="col-6 o_kanban_primary_left" position="inside"> -->
+                <xpath expr="//div[@class='col-6 o_kanban_primary_left']" position="inside" >
+                    <button t-if="record.current_session_state.raw_value == 'opened' || record.current_session_state.raw_value === 'opening_control' " 
+                                class="btn btn-primary" type="object"  
+                                name="open_ui">Resume</button>
+                    <button t-if="!record.current_session_id.raw_value || record.current_session_state.raw_value === 'closing_control' " 
+                                class="btn btn-primary" type="object" 
+                                name="open_session_cb">New Session</button>
+      
+                    <button class="btn btn-primary" name="action_select_cashier" type="object">Caja</button>
+                    <button class="btn btn-primary" name="action_close_cashier" type="object">Cierre</button>
+                </xpath>
+
+                <xpath expr="//div[@class='container o_kanban_card_content']/div[@class='row']" position="after" >
+                    <div>
+                        <span>id:</span>
+                        <t t-esc="record.current_session_id.value" />
+                    </div>
+                </xpath>
+            </field>
+
+        </record>
+
+        <!-- PoS Config -->
+        <record id="pos_extfe_pos_config_form_view" model="ir.ui.view">
+            <field name="name">pos_extfe.pos.config.form.view</field>
+            <field name="model">pos.config</field>
+            <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[3]" position="after">
+                    <br/>
+                    <h2>Draft Orders in POS </h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-xs-12 col-md-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="x_allow_draft_orders"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="x_allow_draft_orders"/>
+                                <div class="text-muted">
+                                    Permite grabar la orden al Back-End para que pueda ser cobraba en caja
+                                </div>
+                            </div>
+                            <div class="o_setting_left_pane">
+                                <field name="x_deny_payments"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="x_deny_payments" string="Deshabilitar Botón de Pago en POS"/>
+                                <div class="text-muted">
+                                    Deshabilitar la opción de cobro en la interface de Punto de Punto
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <div>
+                                    <label for="x_copies_ticket" class="col-lg-4 font-weight-bold" />
+                                    <field name="x_copies_ticket"/>
+                                </div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <div>
+                                    <label for="x_product_receipt" class="col-lg-4 font-weight-bold" />
+                                    <field name="x_product_receipt"/>
+                                    <label for="x_journal_receipt" class="col-lg-4 font-weight-bold" />
+                                    <field name="x_journal_receipt"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                    <h2>Consecutivos FAE </h2>
+                    <div class="row mt16 o_settings_container">                    
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <div>
+                                    <label for="x_sucursal"  class="col-lg-2 font-weight-bold"/>
+                                    <field name="x_sucursal"/>
+                                </div>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <div>
+                                    <label for="x_terminal"  class="col-lg-2 font-weight-bold"/>
+                                    <field name="x_terminal"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box" >
+                            <div class="o_setting_right_pane">
+                                <div>
+                                    <label for="x_sequence_FE_id" class="col-lg-4 font-weight-bold" />
+                                    <field name="x_sequence_FE_id"/>
+                                </div>
+                                <div>
+                                    <label for="x_sequence_TE_id" class="col-lg-4 font-weight-bold" />
+                                    <field name="x_sequence_TE_id"/>
+                                </div>
+                                <div>
+                                    <label for="x_sequence_NC_id"  class="col-lg-4 font-weight-bold" />
+                                    <field name="x_sequence_NC_id"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

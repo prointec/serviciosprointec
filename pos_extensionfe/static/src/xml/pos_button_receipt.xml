@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="button_abono" xml:space="preserve">
+    <t t-extend="ListView.buttons" id="template" xml:space="preserve">
+        <t t-jquery="button.o_list_button_add" t-operation="after">
+            <button t-if='widget.modelName == "pos.order"' class="btn btn-primary btn-sm sync_button o_button_receipt"
+                    type="button">
+                Abono a Crédito
+            </button>
+        </t>
+    </t>
+</templates>

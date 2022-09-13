@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_pos_ticket" model="report.paperformat">
+        <field name="name">Point Of Sale Receipt</field>
+        <field name="default" eval="True"/>
+        <field name="format">custom</field>
+        <field name="page_height">297</field>
+        <field name="page_width">80</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False" />
+        <field name="header_spacing">3</field>
+        <field name="dpi">130</field>
+    </record>
+
+    <report
+        id="pos_order_ticket_report" model="pos.order"
+        string="PoS Ticket"
+        report_type="qweb-pdf"
+        name="pos_extensionfe.fae_pos_order_report_template"
+        file="pos_extensionfe.fae_pos_order_report_template"
+        paperformat="paperformat_pos_ticket"
+    />
+
+    <template id="fae_pos_order_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="ncopies" t-value="1"/>
+                <t t-if="o.session_id and o.session_id.config_id.x_copies_ticket > 1">
+                    <t t-set="ncopies" t-value="o.session_id.config_id.x_copies_ticket" />
+                </t>
+                <t t-foreach="range(ncopies)" t-as="n">
+                    <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+                        <div class="page">
+
+                            <style type="text/css">
+                                .bdy {
+                                    font-size:20px;
+                                    padding-bottom:60px;
+                                }
+                                .tble {
+                                    width: 100%;
+                                    margin-bottom: 1rem;
+                                    font-size:20px;
+                                }
+                                .rounded2{
+                                    border: 1px solid;
+                                    padding:5px 5px;
+                                }
+                                .tble-header {
+                                    height: 30px;
+                                    font-size: 20px;
+                                    text-align: center;
+                                    line-height: 30px;
+                                    text-decoration: none;
+                                    font-weight: bold;
+                                    border-top: 1px solid #dee2e6;
+                                    border-bottom: 1px solid #dee2e6;
+                                    background:#f4f6f6;
+                                }
+                            </style>  
+
+                            <!-- Datos de Encabezado -->
+                            <table class="page text-center" style="font-size:22px; width=100%">
+                                <tr>
+                                    <td>
+                                        <t t-if="o.company_id.logo and o.x_document_type == 'FE'">
+                                            <img class="pos-receipt-logo" t-att-src="image_data_uri(o.company_id.logo)" style="margin:5px 0 0 0; max-height:100px;" alt="Logo"/>
+                                            <br/>
+                                        </t>
+                                        <strong> <t t-esc="o.company_id.name" /> </strong>
+                                        <br/>
+                                        <t t-if="o.company_id.x_commercial_name and o.company_id.x_commercial_name != o.company_id.name" >
+                                            <t t-esc="o.company_id.x_commercial_name" />
+                                            <br/>
+                                        </t>
+                                        Cédula: <t t-esc="o.company_id.vat"/><br/>
+                                        Teléfono: <t t-esc="o.company_id.phone"/><br/>
+                                        <t t-esc="o.company_id.email"/><br/>
+                                    </td>
+                                </tr>                          
+                                <tr>
+                                    <td>
+                                        <br/>
+                                        <t t-if="o.x_sequence">
+                                            <t t-if="o.x_document_type == 'FE'">FACTURA ELECTRÓNICA</t>
+                                            <t t-if="o.x_document_type == 'TE'">TIQUETE ELECTRÓNICO</t>
+                                            <t t-if="o.x_document_type == 'NC'">NOTA DE CRÉDITO ELECTRÓNICA</t>
+                                            <br/>
+                                            <t t-esc="o.x_sequence"/>
+                                        </t>
+                                        <t t-elif="o.x_move_type == 'receipt'">
+                                            Recibo: <t t-esc="o.name"/> <span> - </span> <t t-esc="o.state"/>
+                                        </t>
+                                        <t t-else="">
+                                            Núm.Ref: <t t-esc="o.name"/> <span> - </span> <t t-esc="o.state"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <t t-if="o.x_move_type == 'invoice'">
+                                    <tr style="font-size:22px">
+                                        <t t-if="o.to_invoice">
+                                            <td>venta a CREDITO</td>
+                                        </t>
+                                        <t t-else="">
+                                            <td>venta al CONTADO</td>
+                                        </t>
+                                    </tr>
+                                    <br/>
+                                </t>
+                            </table>
+
+                            <!-- Datos del cliente y condiciones de la venta -->
+                            <table class="tble">
+                                <tr>
+                                    <th width="25%"/>
+                                    <th width="75%"/>
+                                </tr>
+                                <t t-if="o.x_electronic_code50">
+                                    <tr>
+                                        <td colspan="2">Clave Numérica:</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <t t-esc="o.x_electronic_code50[:22]"/>
+                                            <br/>
+                                            <t t-esc="o.x_electronic_code50[22:]"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr>
+                                    <t t-if="o.x_issue_date">
+                                        <td>Fec.Emisión:</td>
+                                        <td>
+                                            <span t-esc="o.x_issue_date[8:10]+'-'+o.x_issue_date[5:7]+'-'+o.x_issue_date[:4]"/>
+                                            <span t-esc="'  ' + o.x_issue_date[11:]"/>
+                                        </td>
+                                    </t>
+                                    <t t-else="">
+                                        <td>Fecha:</td>
+                                        <td><span t-field="o.date_order"/></td>
+                                    </t>
+                                </tr>
+                                <tr>
+                                    <td>Cliente:</td>
+                                    <td><span t-field="o.x_customer_name"/></td>
+                                </tr>
+                                <t t-if="o.partner_id">
+                                    <tr>
+                                        <td>Cédula:</td>
+                                        <td><span t-field="o.partner_id.vat"/><br/></td>
+                                    </tr>
+                                </t>
+                                <t t-if="o.x_move_type == 'invoice' and o.partner_id and (o.partner_id.x_country_district_id or o.partner_id.street)">
+                                    <tr>
+                                        <td>Dirección:</td>
+                                        <td>
+                                            <t t-if="o.partner_id.x_country_district_id and o.partner_id.street">
+                                                <span t-esc="o.partner_id.x_country_district_id.name + ', ' + o.partner_id.street" />
+                                            </t>
+                                            <t t-elif="o.partner_id.x_country_district_id">
+                                                <span t-esc="o.partner_id.x_country_district_id.name" />
+                                            </t>
+                                            <t t-else="">
+                                                <span t-esc="o.partner_id.street" />
+                                            </t>
+                                            <br/>
+                                            <t t-if="o.partner_id.street2">
+                                                <span t-esc="o.partner_id.street2" />
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr>
+                                    <td>Cajero:</td>
+                                    <td><span t-field="o.session_id.x_employee_id.name"/></td>
+                                </tr>
+                                <t t-if="o.x_move_type == 'invoice'">
+                                    <tr>
+                                        <td>Vendedor:</td>
+                                        <td><span t-field="o.employee_id.name"/></td>
+                                    </tr>
+                                </t>
+                            </table>
+
+                            <div class="row">
+                            </div>
+
+                            <!-- Lineas de detalle -->                        
+                            <table name="lines_detail" class="tble" cellspacing="0">
+                                <thead class="tble-header" >
+                                    <tr>
+                                        <th class="text-left"  style="width:25%">Descripción</th>
+                                        <t t-if="o.x_move_type == 'receipt'">
+                                            <th class="text-right" style="width:20%">Saldo anterior</th>
+                                            <th class="text-right" style="width:20%">Monto</th>
+                                        </t>
+                                        <t t-else="">
+                                            <th class="text-right" style="width:20%">Cantidad</th>
+                                            <th class="text-right" style="width:20%">% Desc</th>
+                                            <th class="text-right" style="width:35%">Precio</th>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody class="mt16 mb30" style="border-bottom: 1px solid #dee2e6">
+                                    <tr t-foreach="o.lines.sorted(key=lambda r: r.id)" t-as="line">
+                                        <tr style="font-size:18px">
+                                            <td colspan="4">
+                                                <t t-set="def_code" value="'[' + line.product_id.default_code + ']'" />
+                                                <t t-if="line.full_product_name and def_code in line.full_product_name" >
+                                                    <t t-set="product_description" t-value="line.full_product_name" />
+                                                </t>
+                                                <t t-else="">
+                                                    <t t-set="product_description" t-value="def_code + ' ' + line.product_id.name" />
+                                                </t>
+                                                <span t-esc="product_description"/>
+                                            </td>
+                                        </tr>
+                                        <tr style="font-size:22px">
+                                            <td/>
+                                            <t t-if="o.x_move_type == 'receipt'">
+                                                <td class="text-right"> <span t-field="line.x_last_balance"/> </td>
+                                            </t>
+                                            <t t-else="">
+                                                <td class="text-right"> <span t-field="line.qty"/> </td>
+                                                <td class="text-right">
+                                                    <t t-if="line.discount != 0.0">
+                                                        <span t-esc="line.discount" />
+                                                        <span>% </span>
+                                                    </t>
+                                                </td>
+                                            </t>
+                                            <td class="text-right"> <span t-esc="'{:,.2f}'.format(line.price_subtotal)"/> </td>
+                                        </tr>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Totales -->
+                            <!-- <table style="margin-top: 1px; width:100%"> -->
+                            <table class="tble">
+                                <tr>
+                                    <th width="35%"/>
+                                    <th width="65%"/>
+                                </tr>
+                                <tr>
+                                    <td/>
+                                    <td>
+                                        <table class="table table-sm table-borderless" style="page-break-inside: avoid;">
+                                            <t t-if="o.x_move_type != 'receipt'">
+                                                <tr>
+                                                    <td colspan="2"><strong>Sub.Total</strong> </td>
+                                                    <td class="text-right"> <strong t-esc="'{:,.2f}'.format(o.x_amount_untaxed)" /> </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2"><strong>IVA</strong> </td>
+                                                    <td class="text-right"> <strong t-esc="'{:,.2f}'.format(o.amount_tax)" /> </td>
+                                                </tr>
+                                            </t>
+                                            <tr>
+                                                <td colspan="2"><strong>Total</strong></td>
+                                                <td class="text-right">
+                                                    <strong t-field="o.amount_total" t-options='{"widget": "monetary"}'/>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- Observaciones -->
+                            <div style="font-size:20px;">
+                                <t t-if="o.note">
+                                    <br/>
+                                    <span>Observaciones:</span>
+                                    <br/>
+                                    <span t-esc="o.note"/>
+                                </t>
+                            </div>
+
+                            <!-- Detalle del Pago -->
+                            <t t-if="o.payment_ids" >
+                                <br/>
+                                <table class="tble" style="width:94%; font-size:18px">
+                                    <thead>
+                                        <tr>
+                                            <th width="38%">Forma de pago</th>
+                                            <th width="33%" class="text-right">Recibido</th>
+                                            <th width="29%" class="text-right">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="border-top: 1px solid #dee2e6">
+                                        <tr t-foreach="o.payment_ids.filtered(lambda x: x.amount &gt; 0)" t-as="p">
+                                            <td><span t-esc="p.payment_method_id.name"/> </td>
+                                            <td class="text-right">
+                                                <span class="text-nowrap" t-esc="p.x_currency_id.symbol"/>
+                                                <span t-esc="'{:,.2f}'.format(p.x_currency_amount)"/>
+                                            </td>
+                                            <td class="text-right"><span t-esc="'{:,.2f}'.format(p.amount)"/> </td>
+                                        </tr>
+                                    </tbody>
+                                </table> 
+                                <t t-if="any(o.payment_ids.filtered(lambda x: x.amount &lt; 0))" >
+                                    <span style="font-weight: bold;">VUELTO...</span>
+                                    <table class="tble" style="width:50%">
+                                        <thead>
+                                            <tr>
+                                                <th width="60%"/>
+                                                <th width="40%"/>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="o.payment_ids.filtered(lambda x: x.amount &lt; 0)" t-as="p">
+                                                <td> <span t-esc="p.payment_method_id.name"/> </td>
+                                                <td class="text-right"> <span t-esc="'{:,.2f}'.format(abs(p.amount))"/> </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </t>
+                            </t>
+                            <br/>
+                            <t t-if="o.to_invoice" >
+                                <br/>
+                                <span> Firma Cliente:&amp;nbsp;&amp;nbsp;&amp;nbsp;____________________________________________</span> <br/>
+                                <br/>
+                                <br/>
+                            </t>
+                            <t t-if="o.x_move_type != 'receipt'">
+                                <div style="font-size:18px; text-align:center; padding:2px 2px 2px 2px; border-top: 1px solid #dee2e6">
+                                    Resolución DGT-R-033-2019 del 20 / 06 / 2019
+                                </div>
+                            </t>
+                            <br/>
+                            <div style="text-align:center">
+                                - : -
+                            </div>
+                            <br/>
+                            <br/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

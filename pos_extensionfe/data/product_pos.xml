@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="product_receipt" model="product.template">
+        <field name="name">Abono a crédito</field>
+        <field name="default_code">receipt</field>
+        <field name="lst_price">0</field>
+        <field name="taxes_id" eval="False" />
+        <field name="supplier_taxes_id" eval="False" />
+        <field name="sale_ok" eval="True" />
+        <field name="purchase_ok" eval="False" />
+    </record>
+</odoo>

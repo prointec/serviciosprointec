@@ -1,0 +1,78 @@
+<odoo>
+    <report
+        id="pos_set_express_report"
+        model="pos.session"
+        string="Listado de Vueltos"
+        report_type="qweb-pdf"
+        name="pos_extensionfe.pos_set_express_report_template"
+        file="pos_extensionfe.pos_set_express_report_template"
+    />
+
+    <template id="pos_set_express_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <div>
+                    <h4>
+                        <strong>Reporte de Vueltos</strong>
+                        <br/>
+                        <strong>Point of Sale:</strong>
+                        <t t-if="session.config_id.name">
+                            <span t-field="session.config_id.name"/>
+                        </t>
+                    </h4>
+                    <div id="informations" class="row mt32 mb32">
+                        <strong>Session #:</strong> <span t-esc="session.name"/>
+                        <div t-if="session.start_at" class="col-3 bm-2">
+                            <strong>Opening Date:</strong> <span t-field="session.start_at" class="m-0"/>
+                        </div>                        
+                        <div class="col-3 bm-2">
+                            <t t-if="session.x_employee_id" class="col-3 bm-2">
+                                <strong>Cajero:</strong> <span t-field="session.x_employee_id.name" class="m-0"/>
+                            </t>
+                            <t t-elif="session.user_id" class="col-3 bm-2">
+                                <strong>Name:</strong> <span t-field="session.user_id.name" class="m-0"/>
+                            </t>
+                        </div>
+                        <div class="col-3 bm-2">
+                            <strong>State:</strong> <span t-field="session.state" class="m-0" />
+                            <div t-if="session.stop_at" class="col-3 bm-2">
+                                <strong>Closing Date:</strong> <span t-field="session.stop_at" class="m-0" />
+                            </div>
+                        </div>                        
+                    </div>
+
+                    <table class="table" style="width:35%; font-size:14px;" cellspacing="0" cellpadding="3" rules="groups">
+                        <thead>
+                            <tr>
+                                <th colspan="4" style="background-color:#D3D3D3;text-align:center;">
+                                    <h4 style="margin-top:10px;">Detalle de Vueltos</h4>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>Descripción</th>
+                                <th class="text-right">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="session_cash_entries" t-value="request.env['account.bank.statement.line'].search([('statement_id', '=', session.cash_register_id.id),('x_source', '=', 'express')], order='create_date')"/>
+                            <t t-set="total_cash_entries" t-value="0"/>
+                            <t t-foreach="session_cash_entries" t-as="session_cash_entry">
+                                <t t-set="total_cash_entries" t-value="total_cash_entries + session_cash_entry.amount" />
+                                <tr>
+                                    <td><span t-esc="session_cash_entry.payment_ref"/></td>
+                                    <td style="text-align:right;"><span t-esc="'{:,.2f}'.format(session_cash_entry.amount)"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">* Total:  <t t-esc="'{:,.2f}'.format(total_cash_entries)"/> </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

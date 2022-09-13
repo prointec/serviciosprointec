@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="xpos_hr_employee_view_form" model="ir.ui.view">
+            <field name="name">xpos_hr.employee.form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <field name="coach_id" position="after">
+                    <label for="x_is_cashier" string="Cajero" />
+                    <div class="d-flex">
+                        <field name="x_is_cashier"/>
+                        <span class="o_form_label mx-3">  Clave </span>
+                        <field name="x_password" password="True" attrs="{'readonly': [('x_is_cashier','!=',True)]}" />
+                    </div>
+                </field>
+            </field>
+        </record>
+
+        <record id="xpos_hr_employee_view_tree" model="ir.ui.view">
+            <field name="name">xpos_hr.employee.tree</field>
+            <field name="model">hr.employee</field>
+            <field name="arch" type="xml">
+                <tree string="Cajeros" create="false" editable="bottom">
+                    <field name="name"/>
+                    <field name="x_password" password="True" required="1"/>
+                    <field name="x_cash_starting_amount" />
+                    <field name="x_cash_starting_variable"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record id="action_xpos_employee_action" model="ir.actions.act_window">
+            <field name="name">Cajeros</field>
+            <field name="res_model">hr.employee</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[('x_is_cashier', '=', True)]</field>
+            <field name="view_ids"
+                    eval="[(5,0,0), (0,0,{'view_mode': 'tree', 'view_id': ref('xpos_hr_employee_view_tree')})]"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Aquí se puede ver los empleados definidos como Cajeros.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

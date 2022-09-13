@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="pos_extfe_config_cashier_wizard_form" model="ir.ui.view">
+            <field name="name">Cajero</field>
+            <field name="model">xpos.config_cashier</field>
+            <field name="arch" type="xml">
+            <form string="Selecciona el Cajero">
+                <group string="Seleccione el cajero" >
+                    <field name="started_session" invisible="1"/>
+                    <field name="is_variable" invisible="1"/>
+                    <field name="employee_id" required="1" domain="[('x_is_cashier', '=', True)]"
+                            options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,}"/>
+                    <field name="password" password="True" required="1"/>
+                    <field name="balance_start" attrs="{'readonly': [('is_variable', '=', False), ('started_session', '=', True)], 'invisible':[('started_session','=',True)]}"/>
+                </group>
+                <footer>
+                    <button name="action_config_cashier_select" string="Aceptar" type="object" class="oe_highlight"
+                            invisible="context.get('action_mode_cashier','x') == 'close'" />
+                    <button name="action_config_cashier_close" string="Aceptar" type="object" class="oe_highlight"
+                            invisible="context.get('action_mode_cashier','x') == 'select'" />
+                    <button string="Cancelar" class="oe_link" special="cancel" />
+                </footer>
+            </form>
+            </field>
+        </record>
+
+        <record id="action_pos_config_cashier_wizard" model="ir.actions.act_window">
+            <field name="name">Cajero</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">xpos.config_cashier</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

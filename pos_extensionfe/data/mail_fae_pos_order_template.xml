@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- <delete id="pos_extensionfe.fae_pos_order_email_template" model="mail.template"/> -->
+
+<data noupdate="1">
+    <!-- Email template:  para enviar XML y PDF a los clientes -->
+    <record id="fae_pos_order_email_template" model="mail.template">
+        <field name="name">FAE POS: Correo a Clientes</field>
+        <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) |safe} </field>
+        <field name="subject">${object.company_id.name} envia documento electrónico ${object.x_sequence or ''}</field>
+        <field name="partner_to">${object.partner_id.id}</field>
+        <field name="model_id" ref="point_of_sale.model_pos_order"/>
+        <!-- pos_restaurant.model_pos_order -->
+        <!-- <field name="auto_delete" eval="True" /> -->
+        <field name="lang">${object.partner_id.lang}</field>
+        <field name="report_template" ref="pos_extensionfe.pos_order_ticket_report" />
+        <field name="report_name">doc_${(object.x_electronic_code50 or '').replace('/','_')}${object.state == 'draft' and '_draft' or ''}</field>
+        <field name="body_html" type="html">
+<div style="margin: 0px; padding: 0px;">
+    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+        <span style="color:#063970; font-size:15px">Estimado cliente <strong>${object.x_customer_name}</strong></span><br/>
+        % if object.partner_id.parent_id:
+            <span style="font-size:20px">(${object.partner_id.parent_id.name})</span><br/>
+        % endif
+        <br/>
+        % if object.x_document_type: 
+            Adjunto encontrará los archivos asociados a su Documento Electrónico número:
+        % else:
+            Aquí su documento número:  
+        % endif
+        % if object.x_sequence:
+            <strong>${object.x_sequence}</strong>
+        % else:
+            <strong>${object.name}</strong>
+        % endif
+        <br/>
+        por un monto de <strong>${format_amount(abs(object.amount_total), object.currency_id)}</strong>.
+        <br/>
+        % if object.x_invoice_reference_id:
+        El documento hace referencia al ${object.x_invoice_reference_id.x_document_type} - ${object.x_invoice_reference_id.x_sequence}
+        <br/>
+        % endif
+        <br/>
+        No olvide contactarnos si tiene alguna duda con los documentos adjunto.
+        <br/>
+        Por favor no responda este correo ya que fue generado de manera automática.
+    </p>
+</div>
+        </field>
+    </record>
+</data>
+</odoo>

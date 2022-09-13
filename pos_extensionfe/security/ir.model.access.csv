@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+set_express_wizard,access.set.express.wizard,model_pos_set_express,point_of_sale.group_pos_user,1,1,1,0
+access_cashier,xpos_config_cashier,model_xpos_config_cashier,base.group_user,1,1,1,1
+access_sales_report_wizard,sales_report_wizard,model_sales_report_wizard,base.group_user,1,1,1,1
+access_receipt,xpos_config_receipt,model_xpos_receipt,base.group_user,1,1,1,1
+access_xpos_receipt_line,xpos_receipt_line,model_xpos_receipt_line,base.group_user,1,1,1,1

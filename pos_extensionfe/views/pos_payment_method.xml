@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="xpos_payment_method_view_tree" model="ir.ui.view">
+            <field name="name">xpos_payment.conditions.tree</field>
+            <field name="model">pos.payment.method</field>
+            <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_tree"/>
+            <field name="arch" type="xml">
+                <field name="use_payment_terminal" position="after">
+                    <field name="x_payment_method_id" />
+                </field>
+            </field>
+        </record>
+
+        <record id="xpos_payment_method_view_form" model="ir.ui.view">
+            <field name="name">xpos_payment.method.form</field>
+            <field name="model">pos.payment.method</field>
+            <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+            <field name="arch" type="xml">
+                <field name="company_id" position="after">
+                    <field name="x_payment_method_id" options="{'no_create':True}" />
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

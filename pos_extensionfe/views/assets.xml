@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <template id='assets_pos_extfe_draft_orders_js_css' name='pos_extfe_sdraft_orders_details' inherit_id='point_of_sale.assets'>
+            <xpath expr='.' position='inside'>
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_draft_orders.js"/>
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_draft_orders_button.js"/>
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_notes.js" />
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_name_to_print_button.js"/>
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_payment_screen.js" />
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_client_details.js" />
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/models.js" />
+            </xpath>
+        </template>
+
+        <template id="pos_assets_backend" name="pos_custom page assets" inherit_id="web.assets_backend">
+            <xpath expr="//script[last()]" position="after">
+                <script type="text/javascript" src="/pos_extensionfe/static/src/js/pos_button_receipt.js"/>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>
