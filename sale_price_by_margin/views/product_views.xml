@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="msu_product_form_tree_inherit" model="ir.ui.view">
+            <field name="name">product.template.form.tree.inherit</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='uom_id']" position="after">
+                    <field name="x_margin_first" readonly="1" optional="show"/>
+                    <field name="x_margin_second" readonly="1" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="msu_product_form_view_inherit" model="ir.ui.view">
+            <field name="name">product.template.form.view.inherit</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='sales']//group[@name='sale']" position="inside">
+                    <group string="Márgenes Comerciales" name="comercial_margin" id="comercial_margin">
+                        <group>
+                            <label for="x_margin_first"/>
+                            <div>
+                                <field name="x_margin_first" attrs="{'required':[('sale_ok','=',True)]}" class="oe_inline"/>
+                            </div>
+                            <label for="x_margin_second"/>
+                            <div>
+                                <field name="x_margin_second" attrs="{'required':[('sale_ok','=',True)]}" class="oe_inline"/>
+                            </div>
+                            <field name="x_round_factor" attrs="{'required':[('sale_ok','=',True)]}"/>
+                        </group>
+                        <group>
+                            <field name="x_margin_first_price" readonly="1"/>
+                            <field name="x_margin_second_price" readonly="1"/>
+                        </group>
+                    </group>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="po_account_invoice_form_inherit" model="ir.ui.view" >
+        <field name="name">Bill discount</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="FAE_app.fae_account_invoice_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_line_ids']//tree//field[@name='discount']" position="after">
+                <field name="x_amount_discount"
+                       attrs="{'invisible':[('move_type','not in',('in_invoice','in_refund'))]}"
+                       optional="hide" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

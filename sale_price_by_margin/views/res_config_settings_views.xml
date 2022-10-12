@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pvp</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="10"/>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='pricing_setting_container']" position="inside">
+                <div class="col-12 col-lg-6 o_setting_box"  id="pricelist_container"
+                    title="Configurar las listas de precios para los márgenes de precios">
+                    <div class="o_setting_left_pane">
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <span class="o_form_label">Listas de Precio por Márgenes</span>
+                        <div class="text-muted">
+                            Configure las listas de precios para los márgenes de precios
+                        </div>
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label string="Lista Margen1" for="margin_first_pricelist_id" class="col-lg-3 o_light_label"/>
+                                <field name="margin_first_pricelist_id"/>
+                            </div>
+                            <div class="row">
+                                <label string="Lista Márgen2" for="margin_second_pricelist_id" class="col-lg-3 o_light_label"/>
+                                <field name="margin_second_pricelist_id"/>
+                            </div>
+                        </div>
+                        <div class="o_setting_left_pane mt16">
+                            <field name="x_apply_discount_margin"/>
+                        </div>
+                        <div class="row mt16">
+                            <label for="x_apply_discount_margin"/>
+                            <div class="text-muted" id="x_apply_discount_margin">
+                                Indica si se aplica el descuento al calcular el precio basado en los margenes correspondientes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

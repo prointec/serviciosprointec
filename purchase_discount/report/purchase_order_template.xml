@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_purchaseorder_document_inherit" inherit_id="purchase.report_purchaseorder_document">
+        <xpath expr="//table//thead/tr/th[last()]" position="before">
+            <th name="th_discount" class="text-right">Descuento</th>
+        </xpath>
+        <xpath expr="//t[@t-foreach='o.order_line']//td[last()]" position="before">
+            <td class="text-right">
+                <span t-field="line.x_amount_discount"/>
+            </td>
+        </xpath>
+    </template>
+</odoo>
