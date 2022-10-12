@@ -6,6 +6,7 @@
         <field name="inherit_id" ref="purchase.purchase_order_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='order_line']//tree//field[@name='price_unit']" position="replace">
+                <field name="price_unit" readonly="1"/>                
                 <field name="x_price_unit" attrs="{'readonly': [('invoice_lines', '!=', [])]}"/>
                 <field name="x_discount_calc_type" invisible="1" />
                 <field name="x_discount" attrs="{'readonly':[('x_discount_calc_type','=','m')]}" />
