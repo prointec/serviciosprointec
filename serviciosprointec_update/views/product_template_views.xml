@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_template_form_inherit" model="ir.ui.view">
+        <field name="name">product.template.stock.priceIVA.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="account.product_template_form_view" />
+        <field name="arch" type="xml">
+            <field name="taxes_id" position="after">
+                <field name="x_list_price_IVA" widget='monetary' options="{'currency_field': 'currency_id'}"
+                       readonly="1" />
+            </field>
+        </field>
+    </record>
+</odoo>
