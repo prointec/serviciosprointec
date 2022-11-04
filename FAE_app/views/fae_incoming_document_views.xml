@@ -64,8 +64,9 @@
                                     attrs="{'invisible':['|',('code_accept','not in',('A','P','R')),('state_response_dgt','=','1')]}"/>
                         <button name="consulta_status_doc_enviado" type="object" string="Consultar Hacienda" colspan="2" 
                                     attrs="{'invisible':['|',('state_response_dgt','=', False),('state_response_dgt','!=','PRO')]}"/>
-                        <button name="action_reload_detail" type="object" string="Reload Líneas" colspan="2"
+<--                        <button name="action_reload_detail" type="object" string="Reload Líneas" colspan="2"
                                     attrs="{'invisible':[('lines_ids','!=',False)]}" />
+-->
                     </header>
                     <sheet string="Documento Recibido">
                         <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger" attrs="{'invisible': [('state_response_dgt', '!=', '3')]}"/>
