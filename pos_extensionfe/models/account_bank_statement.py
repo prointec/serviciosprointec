@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError, ValidationError
 
@@ -32,16 +33,15 @@ class AccountCashboxLineExtend(models.Model):
 
     x_currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id,
                                     string='Tipo de Moneda',domain="[('active', '=', True)]")
-    # x_rate = fields.Float(string='Tasa de Cambio',related='x_currency_id.rate')
     x_exchange_rate = fields.Float(string='Tipo de Cambio', store=True)
     x_payment_amount = fields.Float(string='Monto pagado', compute='_sub_total')
-    # x_cr_rate_selling = fields.Float(string='Factor de Cambio', compute='_compute_cr_rate_selling')
+
 
     @api.onchange('x_currency_id')
     def _onchage_x_currency_id(self):
         session_id = self.env.context.get("pos_session_id")
         if not session_id:
-            raise ValidationError('No fue posible obtener el número de session')
+            raise ValidationError('No fue posible obtener el número de sesión')
 
         if self.x_currency_id.id == self.env.company.currency_id.id:
             exchange_rate = 1

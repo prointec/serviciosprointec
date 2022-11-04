@@ -49,6 +49,7 @@ class PosOrderLineInherit(models.Model):
     x_amount_total_line = fields.Float(string="Monto Total", readonly=True)
     x_last_balance = fields.Float(string="Monto Anterior", help='Saldo por Cobrar antes de este pago',)
 
+    x_exoneration_id = fields.Many2one('xpartner.exoneration', string='Exoneración', copy=True)
 
     # override el onchange original de odoo, para poder permitir cambiar los impuestos
     @api.onchange('product_id')
@@ -63,14 +64,61 @@ class PosOrderLineInherit(models.Model):
             raise UserError('El artículo: %s no tiene código CAByS' % (self.product_id.default_code or self.product_id.name) )
 
         self.x_tax_ids_for_calc_amount = True
-        tax_ids = self.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
-
+        # tax_ids = self.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
+        #
+        # price = self.order_id.pricelist_id.get_product_price(self.product_id, self.qty or 1.0, self.order_id.partner_id)
+        # self._onchange_qty()
+        # tax_ids_after_fiscal_position = self.order_id.fiscal_position_id.map_tax(tax_ids, self.product_id, self.order_id.partner_id)
+        # self.tax_ids = tax_ids_after_fiscal_position
+        # self.tax_ids_after_fiscal_position = tax_ids_after_fiscal_position
         price = self.order_id.pricelist_id.get_product_price(self.product_id, self.qty or 1.0, self.order_id.partner_id)
+        self.tax_ids = self._get_line_taxes()
+        self.tax_ids_after_fiscal_position = self.tax_ids
         self._onchange_qty()
-        tax_ids_after_fiscal_position = self.order_id.fiscal_position_id.map_tax(tax_ids, self.product_id, self.order_id.partner_id)
-        self.tax_ids = tax_ids_after_fiscal_position
-        self.tax_ids_after_fiscal_position = tax_ids_after_fiscal_position
-        self.price_unit = self.env['account.tax']._fix_tax_included_price_company(price, self.product_id.taxes_id, tax_ids_after_fiscal_position, self.company_id)
+        self.price_unit = self.env['account.tax']._fix_tax_included_price_company(price, self.product_id.taxes_id, self.tax_ids, self.company_id)
+
+    @api.onchange('qty')
+    def _onchange_pos_line_qty(self):
+        if self.order_id.x_move_type == 'refund' and self.qty > 0:
+            self.qty = -abs(self.qty)
+
+    @api.onchange('tax_ids')
+    def _change_xpos_line_tax_ids(self):
+        self.x_tax_ids_for_calc_amount = True
+        order = self.order_id
+        if self.product_id or self.full_product_name:
+            self._get_tax_ids_after_fiscal_position()
+            exonerated = False
+            exoneration = None
+            if self.tax_ids:
+                today = datetime.date.today()
+                exoneration = order.partner_id.get_exoneration_by_cabys(today, self.product_id.x_cabys_code_id)
+                tax_ids = self.tax_ids
+                for tax in tax_ids:
+                    if tax.x_has_exoneration:
+                        if not order.partner_id:
+                            raise ValidationError('El impuesto: %s es para exoneración pero el documento no le han definido un cliente' % tax.name)
+                        if order.partner_id.x_special_tax_type != 'E':
+                            raise ValidationError(
+                                'El impuesto: %s es para exoneración pero el cliente no tiene definido que es exonerado, prod: %s'
+                                % (tax.name, (self.product_id and self.product_id.default_code)))
+                        if order.partner_id.x_exo_modality != 'M' and not order.partner_id.property_account_position_id:
+                            raise ValidationError('El impuesto: %s es para exoneración pero el cliente no tiene definido la posición fiscal' % tax.name)
+                        elif order.partner_id.x_exo_modality == 'M' and not exoneration:
+                            raise ValidationError(
+                                'El impuesto: %s es para exoneración pero el CAByS del producto no está presente en alguna exoneración del cliente' % tax.name)
+                        if exoneration:
+                            if tax.id.origin != exoneration.account_tax_id.id:
+                                tax_ids -= tax  # quita el tax exonerado que no corresponde con el de la exoneración
+                            if exoneration.account_tax_id not in tax_ids:
+                                exonerated = True
+                                tax_ids = exoneration.account_tax_id
+                self.tax_ids = tax_ids
+            self.x_exoneration_id = exoneration.id if exonerated and exoneration else None
+
+            res = self._compute_amount_line_all()
+            self.update(res)
+        self.order_id.calc_amount_total()
 
     # override el onchange original de odoo, para poder permitir cambiar los impuestos
     # @api.model
@@ -80,20 +128,26 @@ class PosOrderLineInherit(models.Model):
         self.price_subtotal = res['price_subtotal']
         self.price_subtotal_incl = res['price_subtotal_incl']
 
-    @api.onchange('qty')
-    def _onchange_pos_line_qty(self):
-        if self.order_id.x_move_type == 'refund' and self.qty > 0:
-            self.qty = -abs(self.qty)
-
-    @api.onchange('tax_ids')
-    def _change_xpos_line_tax_ids(self):
-        for line in self:
-            line.x_tax_ids_for_calc_amount = True
-            if line.product_id:
-                line._get_tax_ids_after_fiscal_position()
-            res = line._compute_amount_line_all()
-            line.update(res)
-        self.order_id.calc_amount_total()
+    @api.model
+    def _get_line_taxes(self):
+        self.ensure_one()
+        tax_ids = self.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
+        tax_ids = self.order_id.fiscal_position_id.map_tax(tax_ids, self.product_id, self.order_id.partner_id)
+        order = self.order_id
+        today = datetime.date.today()
+        exoneration = None
+        exonerated = False
+        if order.partner_id.x_special_tax_type == 'E' and order.partner_id.x_exo_modality == 'M' and self.product_id.x_cabys_code_id:
+            exoneration = order.partner_id.get_exoneration_by_cabys(today, self.product_id.x_cabys_code_id)
+            if exoneration:
+                for tax in tax_ids:
+                    if tax.amount > exoneration.account_tax_id.amount:
+                        tax_ids -= tax      # quita el tax de la lista para agregar el nuevo
+                        if exoneration.account_tax_id not in tax_ids:
+                            exonerated = True
+                            tax_ids = exoneration.account_tax_id
+        self.x_exoneration_id = exoneration.id if exonerated and exoneration else None
+        return tax_ids
 
     @api.model
     def _get_tax_ids_after_fiscal_position(self):
@@ -136,6 +190,7 @@ class PosOrderInherit(models.Model):
     payment_ids = fields.One2many(copy=False)
 
     # Otros campos
+    x_economic_activity_id = fields.Many2one("xeconomic.activity", string="Actividad Económica", required=False, )
     employee_id = fields.Many2one('hr.employee', string='Vendedor', store=True, readonly=True)
     currency_id = fields.Many2one('res.currency', string='Currency', store=True,                                 
                                     default=_default_xpos_currency,
@@ -229,8 +284,19 @@ class PosOrderInherit(models.Model):
         taxes = taxes.compute_all(price, line.order_id.pricelist_id.currency_id, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)['taxes']
         return sum(tax.get('amount', 0.0) for tax in taxes)
 
+    @api.onchange('company_id')
+    def _get_economic_activities(self):
+        for rec in self:
+            rec.x_economic_activity_id = rec.company_id.x_economic_activity_id
+
+    @api.constrains('partner_id', 'x_economic_activity_id')
+    def check_x_economic_activity_id(self):
+        if not self.x_economic_activity_id:
+            self.x_economic_activity_id = self.company_id.x_economic_activity_id
+
     @api.onchange('partner_id')
     def _onchange_xpos_partner_id(self):
+        res = super(PosOrderInherit, self)._onchange_partner_id()
         for rec in self:
             if rec.partner_id:
                 rec.x_name_to_print = rec.partner_id.name
@@ -241,22 +307,17 @@ class PosOrderInherit(models.Model):
             else:
                 rec.x_document_type = 'TE'
 
-            if rec.partner_id:
-                rec.x_name_to_print = rec.partner_id.name
-
             rec.fiscal_position_id = None if not rec.partner_id else rec.partner_id.property_account_position_id
             if rec.lines:
                 rec._onchange_fiscal_position_id()
                 rec.calc_amount_line_all()
-        return super(PosOrderInherit, self)._onchange_partner_id()
+        return res
 
     @api.onchange('fiscal_position_id')
     def _onchange_fiscal_position_id(self):
         for line in self.lines:
-            tax_ids = line.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
-            line.tax_ids = self.fiscal_position_id.map_tax(tax_ids, line.product_id, self.partner_id)
+            line.tax_ids = line._get_line_taxes()
             line.tax_ids_after_fiscal_position = line.tax_ids
-
 
     @api.onchange('payment_ids', 'lines')
     def _onchange_amount_all(self):
@@ -729,9 +790,9 @@ class PosOrderInherit(models.Model):
                 raise ValidationError('Debe indicar el tipo de documento electrónico a Generar')
         if self.x_move_type in ('invoice','refund') and self.x_document_type:
             if self.partner_id:
-                if self.partner_id.x_special_tax_type == 'E' and not(self.partner_id.x_exo_exoneration_number and self.partner_id.x_exo_type_exoneration ):
+                if self.partner_id.x_special_tax_type == 'E' and self.partner_id.x_exo_modality == 'T' \
+                        and not(self.partner_id.x_exo_exoneration_number and self.partner_id.x_exo_type_exoneration ):
                     raise ValidationError('El Cliente es Exonerado y no han ingresado los datos de la exoneración')
-
 
     def action_get_payment(self):
         self.validate_pos_order_data()
@@ -898,7 +959,7 @@ class PosOrderInherit(models.Model):
         self.ensure_one()
         if self.company_id.x_fae_mode not in ('api-stag', 'api-prod'):
             return
-        if self.x_document_type and (not self.x_state_dgt or self.x_state_dgt in ('ENV', 'FI')):
+        if self.x_document_type and (not self.x_state_dgt or self.x_state_dgt in ('ENV', 'FI', 'ERR')):
             self.generate_xml_and_send_dgt(self, True)
         return {
             'type': 'ir.actions.client',
@@ -1064,12 +1125,10 @@ class PosOrderInherit(models.Model):
                                 if inv_line.product_id.x_cabys_code_id:
                                     line["codigoCabys"] = inv_line.product_id.x_cabys_code_id.code
 
-
                             if inv_line.discount and price_unit > 0:
                                 total_descuento += descuento
                                 line["montoDescuento"] = descuento
                                 line["naturalezaDescuento"] = inv_line.x_discount_note or 'Descuento Comercial'
-
 
                             # Se generan los impuestos
                             taxes = dict()
@@ -1077,32 +1136,33 @@ class PosOrderInherit(models.Model):
                             has_exoneration = False
                             perc_exoneration = 0
                             include_baseImponible = False
-                            factor_exoneracion = 0.0   #  relacion respecto al total del IVA, se calcula asi:  porc_exoneracion / porcentaje de IVA 
-                            if tax_ids:
+                            factor_exoneracion = 0.0   # relacion respecto al total del IVA, se calcula asi:  porc_exoneracion / porcentaje de IVA
+                            if inv_line.tax_ids:
                                 itax = 0
                                 taxes_lookup = {}
-                                for tx in tax_ids:
+                                for tx in inv_line.tax_ids:
                                     if inv.partner_id.x_special_tax_type == 'E' and tx.x_has_exoneration:
                                         # Partner Exonerado
                                         has_exoneration = True
                                         perc_exoneration = (tx.x_exoneration_rate or 0)
                                         tax_rate = tx.amount + perc_exoneration
                                         factor_exoneracion = perc_exoneration / tax_rate
-                                        taxes_lookup[tx.id] = {'cod_impuesto': tx.x_tax_code_id.code, 
-                                                              'tarifa': tax_rate,
-                                                              'cod_tarifa_imp': tx.x_tax_rate_id.code,
-                                                              'porc_exoneracion': perc_exoneration,  }
+                                        taxes_lookup[tx.id] = {'cod_impuesto': tx.x_tax_code_id.code,
+                                                               'tarifa': tax_rate,
+                                                               'cod_tarifa_imp': tx.x_tax_rate_id.code,
+                                                               'porc_exoneracion': perc_exoneration, }
                                     else:
                                         tax_rate = tx.amount
-                                        taxes_lookup[tx.id] = {'cod_impuesto': tx.x_tax_code_id.code, 
-                                                              'tarifa': tax_rate,
-                                                              'cod_tarifa_imp': tx.x_tax_rate_id.code,
-                                                              'porc_exoneracion': None,  }
-                                    
+                                        perc_exoneration = 0
+                                        taxes_lookup[tx.id] = {'cod_impuesto': tx.x_tax_code_id.code,
+                                                               'tarifa': tax_rate,
+                                                               'cod_tarifa_imp': tx.x_tax_rate_id.code,
+                                                               'porc_exoneracion': None, }
+                                    #
                                     if not tx.x_tax_code_id or not tx.x_tax_rate_id:
                                         raise UserError('Para el impuesto: %s, no tiene definido el código de impuesto de Hacienda o el códito de tarifa' %(tx.name) )
                                     elif tx.x_tax_rate_id.code == '08' and tax_rate != 13:
-                                        raise UserError('Para el artículo: %s, el código de tarifa "08", el porcentaje de interes debe ser 13, pero es: %s' 
+                                        raise UserError('Para el artículo: %s, el código de tarifa "08", el porcentaje de interes debe ser 13, pero es: %s'
                                                         %(inv_line.product_id.default_code, str(tax_rate)) )
 
                                     include_baseImponible = (tx.x_tax_code_id.code == '07')
@@ -1120,18 +1180,27 @@ class PosOrderInherit(models.Model):
                                             'cod_tarifa_imp': taxes_lookup[i['id']]['cod_tarifa_imp'],
                                         }
                                         # Se genera la exoneración si existe para este impuesto
-                                        if has_exoneration:                                            
+                                        if has_exoneration:
+                                            if not inv.partner_id.property_account_position_id and not inv_line.x_exoneration_id:
+                                                raise UserError('El artículo: %s, tiene un impuesto exonerado pero no tiene asignado el número de exoneración',
+                                                                inv_line.product_id.default_code)
                                             perc_exoneration = taxes_lookup[i['id']]['porc_exoneracion']
                                             tax_amount_exo = round(subtotal_line * (perc_exoneration / 100), 2)
                                             if tax_amount_exo > tax_amount:
                                                 tax_amount_exo = tax_amount
 
                                             acum_line_tax -= tax_amount_exo  # resta la exoneracion al acumulado de impuesto
-                                            tax["exoneracion"] = { "monto_exonera": tax_amount_exo,
-                                                                   "porc_exonera": perc_exoneration}
+                                            tax["exoneracion"] = {"monto_exonera": tax_amount_exo,
+                                                                  "porc_exonera": perc_exoneration
+                                                                  }
+                                            if inv_line.x_exoneration_id:
+                                                tax["exoneracion"].update({"exoneration_id": inv_line.x_exoneration_id.id})
 
                                         taxes[itax] = tax
 
+                                if acum_line_tax > 0.01 and (not taxes or not taxes[1].get('cod_tarifa_imp')):
+                                    raise UserError('La línea del producto "%s" tiene impuestos pero la configuración de este, no tiene los datos requeridos por la DGT'
+                                                    % (inv_line.product_id.name))
                                 line["impuesto"] = taxes
                                 line["impuestoNeto"] = round(acum_line_tax, 5)
 

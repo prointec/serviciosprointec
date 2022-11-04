@@ -50,6 +50,7 @@
                         </group>
                     </group>
                 </xpath>
+                
                 <xpath expr="//button[@name='open_frontend_cb']" position="replace" />
                 <!-- <xpath expr="/form/sheet/notebook/page/group/group/div/group[1]" position="attributes"> -->
                 <!-- Cuando la sessión NO esta closed se muestra el campo cash_register_total_entry_encoding -->

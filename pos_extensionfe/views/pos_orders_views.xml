@@ -56,6 +56,10 @@
                     <field name="x_state_dgt" />
                     <!-- <field name="employee_id" string="Vendedor" /> -->
                 </field>
+                <field name="amount_total" position="before">
+                    <field name="x_amount_untaxed" string="Sub.Total" widget="monetary" optional="hide"/>
+                    <field name="amount_tax" sum="Impuesto" widget="monetary" optional="hide"/>
+                </field>
                 <field name="state" position="after">
                     <field name="x_is_express" optional="show" />
                     <field name="x_amount_return_total" optional="hide" />
@@ -82,7 +86,7 @@
 
                 <xpath expr="//button[@name='%(point_of_sale.action_pos_payment)d']" position="replace">
                     <button name="action_get_payment" string="Payment" type="object" class="oe_highlight"
-                                  attrs="{'invisible':['|','|',('x_cashier_session_id','=',0), ('state','!=','draft'),('amount_total','&lt;',0)]}" />
+                                  attrs="{'invisible':['|','|',('x_cashier_session_id','=',0), ('state','!=','draft'),('amount_total','=',0)]}" />
                 </xpath>
 
                 <xpath expr="//form/header/button[@name='refund']" position="after">
@@ -94,7 +98,7 @@
                     <button name="generate_xml_and_send_dgt_manual" string="Crear XML" type="object" colspan="2"
                                     attrs="{'invisible':['|',('x_state_dgt','=','ENV'), ('x_show_generate_xml_button','=',False)]}"/>
                     <button name="generate_xml_and_send_dgt_manual" string="Reenviar Hacienda" type="object" colspan="2"
-                                    attrs="{'invisible':[('x_state_dgt','!=','ENV')]}"/>
+                                    attrs="{'invisible':[('x_state_dgt','not in',('ENV','ERR'))]}"/>
                     <button name="consulta_status_doc_enviado_dgt" type="object" string="Consultar Hacienda" colspan="2"
                                     attrs="{'invisible':['|',('x_state_dgt','=', False),('x_state_dgt','not in',['PRO','FI'])]}"/>
                     <button name="action_send_mail_fae" type="object" string="Reenviar Correo" colspan="2"
@@ -118,6 +122,8 @@
                             <field name="currency_id" invisible="1"/>
                             <field name="x_move_type" invisible="1"/>
                             <field name="name"/>
+                            <field name="x_economic_activity_id" options="{'no_create':True, 'no_open':True}"
+                                        attrs="{'readonly':[('state','!=','draft')]}" />
                             <field name="session_id" readonly="1" force_save="1"/>
                             <field name="partner_id" context="{'res_partner_search_mode': 'customer'}" attrs="{'readonly': [('state','!=','draft')]}"/>
                             <field name="x_name_to_print" attrs="{'invisible':[('x_name_to_print','=',False)]}"/>
@@ -138,7 +144,7 @@
                             </div>
                             <field name="x_amount_return_total" readonly="1" attrs="{'invisible':[('x_amount_return_total','=',0)]}"/>
 
-                            <label for="x_state_dgt" />
+                            <label for="x_state_dgt"/>
                             <div class="o_row">
                                 <field name="x_state_dgt" class="oe_inline" readonly="1"/>
                                 <label for="x_rejection_processed" string="Reprocesado" style="font-weight:bold; margin-left:10px"
@@ -190,6 +196,7 @@
                     <field name="x_other_charge_partner_id"
                            attrs="{'readonly':['|',('x_parent_state','!=','draft'),('x_product_code', '!=', '04')]}"
                            optional="hide"/>
+                    <field name="x_exoneration_id" readonly="1" force_save="1" optional="hide"/>
                     <field name="pack_lot_ids" widget="many2many_tags" groups="stock.group_production_lot"
                            optional="hide"/>
                 </xpath>
@@ -204,14 +211,6 @@
                     <field name="x_currency_amount" widget="monetary" options="{'currency_field': 'x_currency_id'}"/>
                     <field name="x_exchange_rate"  digits="[8,2]" />
                 </xpath>
-
-                <!--                <xpath expr="//notebook/page[@name='payments']/field/tree" position="attributes">-->
-<!--                    <attribute name="delete">0</attribute>-->
-<!--                </xpath>-->
-<!--                <xpath expr="//notebook/page[@name='payments']/field/tree" position="inside">-->
-<!--                    <button name="unlink" icon="fa-trash" type="object" string="Delete" -->
-<!--                                           attrs="{'invisible': [('state', '!=', 'draft')]}"/>-->
-<!--                </xpath>-->
 
                 <!-- notes -->
                 <xpath expr="//notebook/page[@name='notes']" position="after">

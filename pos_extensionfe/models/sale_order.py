@@ -40,6 +40,23 @@ class SaleOrder(models.Model):
                     break
         return pos_config_id
 
+    def _prepare_pos_order_line_data(self, pos_order_id, line):
+        if line:
+            line_vals = {
+                'order_id': pos_order_id,
+                'full_product_name': line.name,
+                'price_unit': line.price_unit,
+                'price_subtotal': line.price_subtotal,
+                'price_subtotal_incl': line.price_total,
+                'discount': line.discount,
+                'company_id': line.company_id.id,
+                'product_id': line.product_id.id,
+                'qty': line.product_uom_qty,
+                'tax_ids': line.tax_id
+            }
+            return line_vals
+        return {}
+
     def send_to_pos(self):
         if self.x_sent_to_pos:
            raise ValidationError('Este presupuesto ya había sido enviado a caja')
@@ -82,26 +99,16 @@ class SaleOrder(models.Model):
             'crm_team_id': self.team_id.id,
             'note': self.note,
             'employee_id': self.x_employee_id.id,
-            'x_sale_order_id': self.id
+            'x_sale_order_id': self.id,
+            'x_economic_activity_id': self.x_economic_activity_id.id,
         }
 
         # pos_order = self.create_pos_order(data_vals)
-        # crea el movimmiento en pos_order
+        # crea el movimiento en pos_order
         pos_order = self.env['pos.order'].create(data_vals)
         pos_order_id = pos_order.id
         for line in self.order_line:
-            line_vals = {
-                'order_id': pos_order_id,
-                'full_product_name': line.name,
-                'price_unit': line.price_unit,
-                'price_subtotal': line.price_subtotal,
-                'price_subtotal_incl': line.price_total,
-                'discount': line.discount,
-                'company_id': line.company_id.id,
-                'product_id': line.product_id.id,
-                'qty': line.product_uom_qty,
-                'tax_ids': line.tax_id
-            }
+            line_vals = self._prepare_pos_order_line_data(pos_order_id, line)
             res = self.env['pos.order.line'].create(line_vals)
 
         self.x_pos_order_id = pos_order_id

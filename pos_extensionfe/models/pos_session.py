@@ -4,6 +4,7 @@ from odoo import models, fields, api, _
 
 from odoo.exceptions import Warning, UserError, ValidationError
 
+from odoo.tools import float_is_zero, float_compare
 from collections import defaultdict
 
 class PosSessionInherit(models.Model):
@@ -157,6 +158,7 @@ class PosSessionInherit(models.Model):
 
             return vals
 
+    # inhibe la inclusión de facturas de crédito en el asiento de caja
     def _accumulate_amounts(self, data):
         # Accumulate the amounts for each accounting lines group
         # Each dict maps `key` -> `amounts`, where `key` is the group key.
@@ -179,7 +181,7 @@ class PosSessionInherit(models.Model):
         # Track the receivable lines of the invoiced orders' account moves for reconciliation
         # These receivable lines are reconciled to the corresponding invoice receivable lines
         # of this session's move_id.
-        order_account_move_receivable_lines = defaultdict(lambda: self.env['account.move.line'])    
+        order_account_move_receivable_lines = defaultdict(lambda: self.env['account.move.line'])
         rounded_globally = self.company_id.tax_calculation_rounding_method == 'round_globally'
         # EXCLUYE LOS MOVIMIENTOS QUE FUERON PASADOS A CREDITO
         for order in self.order_ids.filtered(lambda o: not o.to_invoice):
