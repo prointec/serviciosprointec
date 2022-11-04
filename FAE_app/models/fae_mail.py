@@ -29,8 +29,8 @@ class FaeMail(models.Model):
         ('draft', 'No Confirmado'),
         ('done', 'Confirmado'),
     ], string='Status', index=True, readonly=True, copy=False, default='draft')
-    server = fields.Char(string='Nombre de Servidor', readonly=True, help="Hostname or IP of the mail server", states={'draft': [('readonly', False)]})
-    port = fields.Integer(string='Puerto', readonly=True, states={'draft': [('readonly', False)]})
+    server = fields.Char(string='Nombre de Servidor', help="Hostname or IP of the mail server" )
+    port = fields.Integer(string='Puerto', )
     server_type = fields.Selection([
         ('pop', 'Servidor POP'),
         ('imap', 'Servidor IMAP'),

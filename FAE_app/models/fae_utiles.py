@@ -76,9 +76,11 @@ class XmlStrBuilder:
     def __str__(self):
         return self._file_str.getvalue()
 
+
 def modulo_instalado(env, module_name):
     modulo = env['ir.module.module'].search([('name', '=', module_name)])
     return modulo and modulo.state == 'installed'
+
 
 def get_datetime_dgt(fecha_hora=None):
     # La hora de Costa Rica está a 6 horas antes del Meridiano 0 (es UTC -6)
@@ -260,6 +262,7 @@ def gen_consecutivo(tipo_documento, consecutivo, sucursal_id, terminal_id):
 
     return consecutivo20
 
+
 def gen_clave_hacienda(doc, tipo_documento, consecutivo, sucursal_id, terminal_id, situacion=None):
 
     if not doc.company_id.x_identification_type_id:
@@ -330,7 +333,6 @@ def get_token_hacienda(company_id, fae_mode):
     token_time = tokens_time[fae_mode].get(company_id.id, False)
     token_expire = tokens_expire[fae_mode].get(company_id.id, 0)
     current_time = time.time()
-
 
     if token and (current_time - token_time < token_expire - 10):
         # _logger.info('>> get_token_hacienda: Existe un token cargado,  time_expire: %s ' % (str(token_expire)))
@@ -480,6 +482,7 @@ def get_mensaje_respuesta(xml_respuesta):
             pass
     return mensaje[:800]
 
+
 # Genera xml para el documento electrónico
 def gen_xml_v43(inv, sale_condition_code, total_servicio_gravado, total_servicio_exento, total_servicio_exonerado,
     total_mercaderia_gravado, total_mercaderia_exento, total_mercaderia_exonerado, total_otros_cargos,
@@ -487,11 +490,10 @@ def gen_xml_v43(inv, sale_condition_code, total_servicio_gravado, total_servicio
     lines, otrosCargos, currency_rate, other_extra_ext, tipo_documento_referencia, numero_documento_referencia,
     fecha_emision_referencia, codigo_referencia, razon_referencia ):
 
-    numero_linea = 0
     payment_methods_code = []
     if inv._name == 'pos.order':
         # Documento de POS
-        economic_activity_code = inv.company_id.x_economic_activity_id.code
+        economic_activity_code = (inv.x_economic_activity_id and inv.x_economic_activity_id.code) or inv.company_id.x_economic_activity_id.code
         plazo_credito = '0'
         ref_oc = None
         for payment in inv.payment_ids:
@@ -643,8 +645,20 @@ def gen_xml_v43(inv, sale_condition_code, total_servicio_gravado, total_servicio
     # lineas del documento
     xmlstr.Append('<DetalleServicio>')
 
+    # procesa las lineas del documento
+    if inv.x_document_type == 'FEC':
+        receiver_exoneration = {}
+    else:
+        receiver_exoneration = {'id': -1,
+                                'TipoDocumento':  receiver_company.x_exo_type_exoneration and receiver_company.x_exo_type_exoneration.code or None,
+                                'NumeroDocumento': receiver_company.x_exo_exoneration_number,
+                                'NombreInstitucion': receiver_company.x_exo_institution_name,
+                                'fechaEmision': receiver_company.x_exo_date_issue and get_datetime(receiver_company.x_exo_date_issue) or None,
+                                }
+    exoneration_data = {}
+    exoneration = inv.env['xpartner.exoneration']
+    numero_linea = 0
     jlines = json.loads(lines)
-
     for (k, v) in jlines.items():
         numero_linea = numero_linea + 1
 
@@ -693,14 +707,22 @@ def gen_xml_v43(inv, sale_condition_code, total_servicio_gravado, total_servicio
 
                     if inv.x_document_type != 'FEE':
                         if b.get('exoneracion'):
+                            exoneration_id = b['exoneracion'].get('exoneration_id')
+                            if not exoneration_id:
+                                exoneration_data = receiver_exoneration   # exoneration queda apuntando a los datos el receiver
+                            elif not exoneration_data or exoneration_data.get('id') != exoneration_id:
+                                exoneration = inv.env['xpartner.exoneration'].browse(exoneration_id)
+                                exoneration_data = {'id': exoneration.id,
+                                                    'TipoDocumento':  exoneration.type_exoneration.code,
+                                                    'NumeroDocumento': exoneration.exoneration_number,
+                                                    'NombreInstitucion': exoneration.institution_name,
+                                                    'fechaEmision': exoneration.date_issue and get_datetime(exoneration.date_issue) or None,
+                                                    }
                             xmlstr.Append('<Exoneracion>')
-                            xmlstr.Tag('TipoDocumento', receiver_company.x_exo_type_exoneration.code )
-                            xmlstr.Tag('NumeroDocumento', receiver_company.x_exo_exoneration_number )
-                            xmlstr.Tag('NombreInstitucion', receiver_company.x_exo_institution_name )
-                            fechaEmision = None
-                            if receiver_company.x_exo_date_issue:
-                                fechaEmision = get_datetime(receiver_company.x_exo_date_issue)
-                            xmlstr.Tag('FechaEmision', fechaEmision)
+                            xmlstr.Tag('TipoDocumento', exoneration_data['TipoDocumento'] )
+                            xmlstr.Tag('NumeroDocumento', exoneration_data['NumeroDocumento']  )
+                            xmlstr.Tag('NombreInstitucion', exoneration_data['NombreInstitucion']  )
+                            xmlstr.Tag('FechaEmision', exoneration_data['fechaEmision'])
                             xmlstr.Tag('PorcentajeExoneracion', str(int(b['exoneracion']['porc_exonera'])) )
                             xmlstr.Tag('MontoExoneracion', str(b['exoneracion']['monto_exonera']) )
                             xmlstr.Append('</Exoneracion>')
@@ -794,8 +816,9 @@ def gen_xml_v43(inv, sale_condition_code, total_servicio_gravado, total_servicio
             xmlotros.Tag_prop('OtroTexto', 'codigo', 'NoDocumento', str(escape(ref_oc)) )
 
     # OtroTexto (extra)    -- En odoo15 puede que llegue "<p><br></p>" y esto causa error al firmar el documento
-    if other_extra_ext and other_extra_ext != '<p><br></p>':
-        xmlotros.Tag('OtroTexto', str(escape(other_extra_ext)))
+    if other_extra_ext:
+        other_text = other_extra_ext.replace('<p>', '').replace('<br>', '').replace('</p>', '')
+        xmlotros.Tag('OtroTexto', str(escape(other_text)), len(other_text) > 0)
 
     # OtroTexto o OtroContenido en este orden estricto
     other_text = inv.xml_OtroTexto()

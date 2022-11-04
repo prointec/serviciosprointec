@@ -10,7 +10,7 @@
                 <group string="Seleccione los documentos">
                     <field name="xml_doc" required="1"/>
                     <field name="xml_response" required="1"/>
-                    <field name="pdf" required="1"/>
+                    <field name="pdf"/>
                 </group>
 
                 <footer>

@@ -274,12 +274,12 @@
                     <table id="t2_invoice_line_table" name="invoice_line_table" cellspacing="0" class="tble">
                         <thead class="tble-header">
                             <tr>
-                                <th name="th_description" class="text-left">Producto</th>
-                                <th name="th_quantity" width="10%" class="text-right">Cantidad</th>
-                                <th name="th_priceunit" width="15%" class="text-right">Precio</th>
-                                <th t-if="display_discount" class="text-right">Disc.(%)</th>
-                                <th name="th_taxes" width="15%" class="text-right">Impuesto</th>
-                                <th name="th_subtotal" width="18%" class="text-right">Total</th>
+                                <th name="th_description" width="42%" class="text-left">Producto</th>
+                                <th name="th_quantity" width="8%" class="text-right">Cantidad</th>
+                                <th name="th_priceunit" width="14%" class="text-right">Precio</th>
+                                <th t-if="display_discount" width="8%" class="text-right">% Desc</th>
+                                <th name="th_taxes" width="12%" class="text-right">Impuesto</th>
+                                <th name="th_subtotal" width="15%" class="text-right">Total</th>
                             </tr>
                         </thead>
 
@@ -325,8 +325,8 @@
                 <table id="t3_totals" style="margin-top: 1px; width:100%">
                     <tr id="t3_tr1">
                         <th width="45%"/>
-                        <th width="25%"/>
                         <th width="30%"/>
+                        <th width="25%"/>
                     </tr>
                     <tr id="t3_tr2">
                         <td id="r2_taxes">

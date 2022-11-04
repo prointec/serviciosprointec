@@ -50,24 +50,52 @@
                     <field name="x_special_tax_type" />
                 </field>
 
-                <field name="property_account_position_id" position="replace">
-                    <field name="property_account_position_id" attrs="{'required': [('x_special_tax_type','!=',False)]}" />
+                <xpath expr="//group[@name='fiscal_information']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('x_special_tax_type', '=', 'E')]}</attribute>
+                </xpath>
+                <field name="property_account_position_id" position="attributes">
+                    <attribute name="attrs">{'required': [('x_special_tax_type','=','R')]}</attribute>
                 </field>
 
                 <xpath expr="//page[3]" position="after">
-                    <page name="exoneration_tab" string="Exoneración" attrs="{'invisible': [('x_special_tax_type', '!=', 'E')]}">
-                        <span>Exoneración que aplica para todos los productos vendidos</span>
-                        <group>
+                    <field name="x_exo_has_exoneration" invisible="1"/>
+                    <page name="exoneration_tab" string="Exoneración" attrs="{'invisible': [('x_special_tax_type','!=','E')]}">
+                        <label for="x_exo_modality" string="Tipo" style="padding-right:30px;"/>
+                        <field name="x_exo_modality" nolabel="1" widget="radio" options="{'horizontal': true}" />
+                        <group attrs="{'invisible': [('x_exo_modality','!=','T')]}" >
+<!--                        <group attrs="{'invisible': True}">-->
                             <group>
+<!--                                <field name="x_exo_exoneration_number" />-->
+                                <label for="x_exo_exoneration_number" />
+                                <div class="o_row" >
+                                    <field name="x_exo_exoneration_number" class="oe_inline" />
+                                    <button name="action_get_exoneration_data" string="Consultar DGT" colspan="2" class="oe_highlight" type="object"/>
+                                </div>
                                 <field name="x_exo_type_exoneration" options="{'no_open': True}"/>
                                 <field name="x_exo_institution_name"/>
-                                <field name="x_exo_exoneration_number"/>
                             </group>
                             <group>
                                 <field name="x_exo_date_issue"/>
                                 <field name="x_exo_date_expiration"/>
+                                <field name="property_account_position_id" string="Fiscal position" options="{'no_create': True, 'no_open': True}"/>
                             </group>
                         </group>
+                        <field name="x_exoneration_lines" attrs="{'invisible': [('x_exo_modality','!=','M')]}" >
+                            <span>Exoneraciones sobre algunos CAByS</span>
+                            <tree editable="bottom" delete="false"  default_order="active desc, date_issue asc, exoneration_number asc">
+                                <field name="exoneration_number" />
+                                <button name="action_get_exoneration_data" string="Get DGT" colspan="2" class="oe_highlight" type="object"/>
+                                <field name="type_exoneration" />
+                                <field name="institution_name" optional="show" />
+                                <field name="date_issue" optional="show" />
+                                <field name="date_expiration" optional="show" />
+                                <field name="exoneration_rate" string="% Exo." optional="show"/>
+                                <field name="account_tax_id" domain="[('type_tax_use', '=', 'sale')]"
+                                       attrs="{'required':[('exoneration_number','=',True)]}"/>
+                                <field name="cabys_list" optional="show" />
+                                <field name="active" />
+                            </tree>
+                        </field>
                     </page>
                 </xpath>
 

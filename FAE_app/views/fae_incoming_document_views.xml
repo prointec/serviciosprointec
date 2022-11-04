@@ -29,7 +29,7 @@
             <field name="name">xfae.incoming.documents.tree</field>
             <field name="model">xfae.incoming.documents</field>
             <field name="arch" type="xml">
-                <tree string="Documento Recibido" duplicate="0" create="0" edit="0">
+                <tree string="Documento Recibido" duplicate="0" create="0" edit="0" decoration-danger="response_state == '3'">
                     <field name="company_id" optional="hide" />
                     <field name="identification_type_id" />
                     <field name="identification_number"/>
@@ -46,6 +46,8 @@
                     <field name="code_accept"/>
                     <field name="sequence"/>
                     <field name="state_response_dgt"/>
+                    <field name="create_date" optional="hide"/>
+                    <field name="origin" optional="hide"/>
                 </tree>
             </field>
         </record>
@@ -57,7 +59,7 @@
             <field name="arch" type="xml">
                 <form string="Documento Recibido" duplicate="0" create="0">
                     <header>
-                        <field name="lines_ids" invisible="1"/>
+                        <field name="lines_count" invisible="1"/>
                         <button name="action_send_aceptacion" type="object" string="Enviar a Hacienda" 
                                     attrs="{'invisible':['|',('code_accept','not in',('A','P','R')),('state_response_dgt','=','1')]}"/>
                         <button name="consulta_status_doc_enviado" type="object" string="Consultar Hacienda" colspan="2" 
@@ -66,7 +68,8 @@
                                     attrs="{'invisible':[('lines_ids','!=',False)]}" />
                     </header>
                     <sheet string="Documento Recibido">
-                        <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger" attrs="{'invisible': [('state_response_dgt', '!=', '2')]}"/>
+                        <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger" attrs="{'invisible': [('state_response_dgt', '!=', '3')]}"/>
+                        <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger" attrs="{'invisible': [('response_state', '!=', '3')]}"/>
                         <group>
                             <field name="issuer_sequence" readonly="1"/>
                             <field name="issuer_electronic_code50" readonly="1" />                            

@@ -73,6 +73,7 @@ class ResCompanyInherit(models.Model):
 
     # 
     x_load_bill_xml_lines = fields.Boolean(string="Carga líneas XML proveedor", default=False)
+    # el siguiente campo puede que no se ocupe
     x_def_expenses_account = fields.Many2one("account.account", string="Cuenta Gastos XML",
                                             help='Cuenta de Gastos default para carga de líneas del XML recibido del proveedor', )
     x_situacion_comprobante = fields.Selection(string="Conexión DGT",

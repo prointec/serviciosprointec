@@ -2,6 +2,8 @@ Facturación Electrónica Costa Rica
 ----------------------------------
 Implementa la facturación delectrónica para Costa Rica.
 
+Versión: odoo 14
+
 Requiere: 
   pip install phonenumber
   pip install xmlsig
