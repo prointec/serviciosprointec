@@ -1289,6 +1289,9 @@ class FaeAccountInvoice(models.Model):
             return res
         return super(FaeAccountInvoice, self).create(vals_list)
 
+    def action_load_lines_incoming_doc(self):
+        return
+
     # carga lineas del XML para facturas de Compra
     def load_xml_lines(self):
         return
