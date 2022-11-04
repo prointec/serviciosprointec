@@ -783,11 +783,12 @@ class PosOrderInherit(models.Model):
 
     # realiza validaciones 
     def validate_pos_order_data(self):
-        if self.x_move_type == 'invoice':
-            # son invoice
-            doc_type_ref = None if not self.x_invoice_reference_id else self.x_invoice_reference_id.x_document_type
-            if self.company_id.x_fae_mode != 'N' and not self.x_document_type and (not doc_type_ref or doc_type_ref != 'NC'):
-                raise ValidationError('Debe indicar el tipo de documento electrónico a Generar')
+        # Solo en los siguientes clientes este codigo queda deshabilitado:  ProintecServicios
+        # if self.x_move_type == 'invoice':
+        #     # son invoice
+        #     doc_type_ref = None if not self.x_invoice_reference_id else self.x_invoice_reference_id.x_document_type
+        #     if self.company_id.x_fae_mode != 'N' and not self.x_document_type and (not doc_type_ref or doc_type_ref != 'NC'):
+        #         raise ValidationError('Debe indicar el tipo de documento electrónico a Generar')
         if self.x_move_type in ('invoice','refund') and self.x_document_type:
             if self.partner_id:
                 if self.partner_id.x_special_tax_type == 'E' and self.partner_id.x_exo_modality == 'T' \
