@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="servicios_product_update_assets" name="Notification Assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/servicios_product_update/static/src/js/Notification.js"/>
+        </xpath>
+    </template>
+
+</odoo>

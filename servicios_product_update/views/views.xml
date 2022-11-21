@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="servicios_product_update_assets" name="Notification Assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/servicios_product_update/static/src/js/Notification.js"/>
+        </xpath>
+    </template>
+
+    <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <div name="matrix_setting_container" position="inside">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane" />
+                    <div class="o_setting_right_pane">
+                        <label for="notification_msg" />
+                        <div class="text-muted">
+                            Mensaje de notificación una vez creada la notificación 
+                            <span class="text-black font-italic">
+                                (usa %d para el número de PO creadas)
+                            </span>
+                        </div>
+                        <field name="notification_msg" />
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane" />
+                    <div class="o_setting_right_pane">
+                        <label for="notification_time" />
+                        <div class="text-muted">
+                            Tiempo en segundos para notificar una vez creada la PO por reabastecimiento
+                        </div>
+                        <field name="notification_time" />
+                    </div>
+                </div>
+            </div>
+        </field>
+    </record>
+
+</odoo>
