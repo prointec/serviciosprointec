@@ -37,7 +37,7 @@ class PurchaseOrderLine(models.Model):
             line.x_margin_second_price = 0
             if line.product_id and line.price_unit:
                 product_tmpl = line.product_id.product_tmpl_id
-                price_unit = line.x_price_unit  # precio bruto (sin aplicar descuento)
+                price_unit = line.price_unit  # precio bruto (sin aplicar descuento)
                 if apply_discount_margin and line.product_qty != 0 and line.x_amount_discount != 0:
                     price_unit = price_unit - (line.x_amount_discount/ line.product_qty)
                 if product_tmpl.x_margin_first:

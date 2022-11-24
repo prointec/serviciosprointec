@@ -34,3 +34,13 @@ class ResConfigSettings(models.TransientModel):
         param.set_param('sale_price_by_margin.margin_first_pricelist_id', field1)
         param.set_param('sale_price_by_margin.margin_second_pricelist_id', field2)
         param.set_param('sale_price_by_margin.x_apply_discount_margin', field3)
+
+        if self.margin_first_pricelist_id:
+            for product in self.env["product.template"].sudo().search([]):
+                info = product._get_combination_info(
+                    only_template=True,
+                    add_qty=1,
+                    pricelist=self.margin_first_pricelist_id,
+                )
+
+                product.lst_price = info.get('price', 0)

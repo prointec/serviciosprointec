@@ -26,6 +26,8 @@ class StockPicking(models.Model):
         if item and float_compare(item.fixed_price, new_price, precision_digits=2) != 0:
             msg = '%s --> %s' % (str(item.fixed_price), str(new_price))
             item.write({"fixed_price": new_price})
+            if new_price > 0:
+                move.product_id.write({"list_price": new_price})
         elif not item:
             # No existe por lo que registra el artículo en la lista
             msg = str(new_price)
@@ -37,6 +39,8 @@ class StockPicking(models.Model):
                                                         'currency_id': price_list.currency_id.id,
                                                         'compute_price': 'fixed',
                                                         'fixed_price': new_price})
+            if new_price > 0:
+                move.product_id.write({"list_price": new_price})
         return msg
 
     def button_validate(self):
@@ -53,9 +57,9 @@ class StockPicking(models.Model):
                 for move in move_ids.filtered(lambda m: m.purchase_line_id):
                     product = self.env['product.template'].search([('id', '=', move.product_tmpl_id.id)], limit=1)
                     msg1 = msg2 = ''
-                    if product.x_margin_first:
+                    if product.x_margin_first and margin_first_pricelist_id:
                         msg1 = self._calculate_margin(move, margin_first_pricelist_id, move.purchase_line_id.x_margin_first_price)
-                    if product.x_margin_second:
+                    if product.x_margin_second and margin_second_pricelist_id:
                         msg2 = self._calculate_margin(move, margin_second_pricelist_id, move.purchase_line_id.x_margin_second_price)
                     if msg1 or msg2:
                         msg += 'Prod: %s: [ %s  y  %s ]<br/>' % (move.product_tmpl_id.default_code or move.product_tmpl_id.name[:20], msg1, msg2)
