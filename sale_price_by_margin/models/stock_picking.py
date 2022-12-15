@@ -27,7 +27,11 @@ class StockPicking(models.Model):
             msg = '%s --> %s' % (str(item.fixed_price), str(new_price))
             item.write({"fixed_price": new_price})
             if new_price > 0:
-                move.product_id.write({"list_price": new_price})
+                move.product_tmpl_id.message_post(body="Se ha actualizado el precio de venta: ["+
+                                                       str(move.product_tmpl_id.list_price) + " >> " +
+                                                       str(new_price)+"]")
+                move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})
+
         elif not item:
             # No existe por lo que registra el artículo en la lista
             msg = str(new_price)
@@ -40,7 +44,10 @@ class StockPicking(models.Model):
                                                         'compute_price': 'fixed',
                                                         'fixed_price': new_price})
             if new_price > 0:
-                move.product_id.write({"list_price": new_price})
+                move.product_tmpl_id.message_post(body="Se ha actualizado el precio de venta: [" +
+                                                       str(move.product_tmpl_id.list_price) + " >> " +
+                                                       str(new_price) + "]")
+                move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})
         return msg
 
     def button_validate(self):

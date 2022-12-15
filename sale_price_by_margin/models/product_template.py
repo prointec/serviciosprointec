@@ -14,6 +14,7 @@ class xProductTemplate(models.Model):
     x_round_factor = fields.Float(string='Factor de redondeo', default=5.0)
     x_margin_first_price = fields.Float(string='Precio de Margen 1', compute="_compute_product_price")
     x_margin_second_price = fields.Float(string='Precio de Margen 2', compute="_compute_product_price")
+    x_last_cost = fields.Float(string='Último costo', default=1.0, help="Valor de último costo.")
 
     @api.onchange('x_margin_first', 'x_margin_second', 'x_round_factor')
     def _onchange_x_margin_first(self):
