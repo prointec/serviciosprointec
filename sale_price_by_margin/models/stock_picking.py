@@ -48,6 +48,12 @@ class StockPicking(models.Model):
                                                        str(move.product_tmpl_id.list_price) + " >> " +
                                                        str(new_price) + "]")
                 move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})
+        elif move.product_tmpl_id.list_price != new_price:
+                move.product_tmpl_id.message_post(body="Se ha actualizado el precio de venta: ["+
+                                                       str(move.product_tmpl_id.list_price) + " >> " +
+                                                       str(new_price)+"]")
+                move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})           
+
         return msg
 
     def button_validate(self):
