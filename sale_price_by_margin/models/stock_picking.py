@@ -52,7 +52,7 @@ class StockPicking(models.Model):
                 move.product_tmpl_id.message_post(body="La compra " + move.purchase_line_id.order_id.name + " ha actualizado el precio de venta: ["+
                                                        str(move.product_tmpl_id.list_price) + " >> " +
                                                        str(new_price)+"]")
-                move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})           
+                move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})
 
         return msg
 

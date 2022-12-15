@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 from odoo import api, fields, models, _
-from odoo.exceptions import Warning, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -15,6 +14,7 @@ class xProductTemplate(models.Model):
     x_margin_first_price = fields.Float(string='Precio de Margen 1', compute="_compute_product_price")
     x_margin_second_price = fields.Float(string='Precio de Margen 2', compute="_compute_product_price")
     x_last_cost = fields.Float(string='Último costo', default=1.0, help="Valor de último costo.")
+    x_price_update_manual = fields.Boolean(string="Precio actualizado", default=False)
 
     @api.onchange('x_margin_first', 'x_margin_second', 'x_round_factor')
     def _onchange_x_margin_first(self):
@@ -53,3 +53,17 @@ class xProductTemplate(models.Model):
             else:
                 product.x_margin_first_price = 0
                 product.x_margin_second_price = 0
+
+    @api.onchange('list_price')
+    def _onchange_list_price(self):
+        if self.list_price:
+            self.x_price_update_manual = True
+
+    def write(self, vals):
+        for template in self:
+            if 'x_price_update_manual' in vals and vals.get('x_price_update_manual') \
+                    and 'list_price' in vals and vals.get('list_price'):
+                vals.pop('x_price_update_manual')
+                template.message_post(body="El usuario " + self.env.user.name + " ha actualizado el precio de venta: [" + str(template.list_price) + " >> " + str(vals.get('list_price')) + "]")
+
+        return super(xProductTemplate, self).write(vals)

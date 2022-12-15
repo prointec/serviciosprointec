@@ -43,6 +43,7 @@
                         <group>
                             <field name="x_margin_first_price" readonly="1"/>
                             <field name="x_margin_second_price" readonly="1"/>
+                            <field name="x_price_update_manual" invisible="1"/>
                         </group>
                     </group>
                 </xpath>
