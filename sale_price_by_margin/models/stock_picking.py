@@ -27,7 +27,7 @@ class StockPicking(models.Model):
             msg = '%s --> %s' % (str(item.fixed_price), str(new_price))
             item.write({"fixed_price": new_price})
             if new_price > 0:
-                move.product_tmpl_id.message_post(body="La compra " + move.name + " ha actualizado el precio de venta: ["+
+                move.product_tmpl_id.message_post(body="La compra " + move.purchase_line_id.order_id.name + " ha actualizado el precio de venta: ["+
                                                        str(move.product_tmpl_id.list_price) + " >> " +
                                                        str(new_price)+"]")
                 move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})
@@ -44,12 +44,12 @@ class StockPicking(models.Model):
                                                         'compute_price': 'fixed',
                                                         'fixed_price': new_price})
             if new_price > 0:
-                move.product_tmpl_id.message_post(body="La compra " + move.name + " ha actualizado el precio de venta: ["+
+                move.product_tmpl_id.message_post(body="La compra " + move.purchase_line_id.order_id.name + " ha actualizado el precio de venta: ["+
                                                        str(move.product_tmpl_id.list_price) + " >> " +
                                                        str(new_price) + "]")
                 move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})
         elif move.product_tmpl_id.list_price != new_price:
-                move.product_tmpl_id.message_post(body="La compra " + move.name + " ha actualizado el precio de venta: ["+
+                move.product_tmpl_id.message_post(body="La compra " + move.purchase_line_id.order_id.name + " ha actualizado el precio de venta: ["+
                                                        str(move.product_tmpl_id.list_price) + " >> " +
                                                        str(new_price)+"]")
                 move.product_tmpl_id.write({"list_price": new_price,"x_last_cost": move.purchase_line_id.price_unit})           
